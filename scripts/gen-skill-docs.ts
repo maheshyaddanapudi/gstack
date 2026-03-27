@@ -31,7 +31,8 @@ const HOST: Host = (() => {
   const val = HOST_ARG.includes('=') ? HOST_ARG.split('=')[1] : process.argv[process.argv.indexOf(HOST_ARG) + 1];
   if (val === 'codex' || val === 'agents') return 'codex';
   if (val === 'claude') return 'claude';
-  throw new Error(`Unknown host: ${val}. Use claude, codex, or agents.`);
+  if (val === 'ollama') return 'ollama';
+  throw new Error(`Unknown host: ${val}. Use claude, codex, ollama, or agents.`);
 })();
 
 // HostPaths, HOST_PATHS, and TemplateContext imported from ./resolvers/types (line 7-8)
@@ -2862,7 +2863,7 @@ policy:
  * Handles multiline block scalar descriptions (YAML | syntax).
  */
 function transformFrontmatter(content: string, host: Host): string {
-  if (host === 'claude') return content;
+  if (host === 'claude' || host === 'ollama') return content;
 
   const fmStart = content.indexOf('---\n');
   if (fmStart !== 0) return content;

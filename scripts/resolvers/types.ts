@@ -1,4 +1,4 @@
-export type Host = 'claude' | 'codex';
+export type Host = 'claude' | 'codex' | 'ollama';
 
 export interface HostPaths {
   skillRoot: string;
@@ -19,6 +19,13 @@ export const HOST_PATHS: Record<Host, HostPaths> = {
     localSkillRoot: '.agents/skills/gstack',
     binDir: '$GSTACK_BIN',
     browseDir: '$GSTACK_BROWSE',
+  },
+  ollama: {
+    // Ollama host uses Claude Code CLI pointed at Ollama — same paths as Claude
+    skillRoot: '~/.claude/skills/gstack',
+    localSkillRoot: '.claude/skills/gstack',
+    binDir: '~/.claude/skills/gstack/bin',
+    browseDir: '~/.claude/skills/gstack/browse/dist',
   },
 };
 
