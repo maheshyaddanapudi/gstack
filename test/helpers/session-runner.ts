@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { getProjectEvalDir } from './eval-store';
+import { getModelForSkill, buildOllamaEnv } from '../../lib/ollama-config';
 
 const GSTACK_DEV_DIR = path.join(os.homedir(), '.gstack-dev');
 const HEARTBEAT_PATH = path.join(GSTACK_DEV_DIR, 'e2e-live.json'); // heartbeat stays global
@@ -136,7 +137,12 @@ export async function runSkillTest(options: {
     testName,
     runId,
   } = options;
-  const model = options.model ?? process.env.EVALS_MODEL ?? 'claude-sonnet-4-6';
+  // Model resolution: explicit option > env override > Ollama tier config > cloud default
+  const ollamaResolution = getModelForSkill(options.testName ?? '');
+  const model = options.model
+    ?? process.env.EVALS_MODEL
+    ?? ollamaResolution.model
+    ?? 'claude-sonnet-4-6';
 
   const startTime = Date.now();
   const startedAt = new Date().toISOString();
@@ -169,10 +175,14 @@ export async function runSkillTest(options: {
   const promptFile = path.join(os.tmpdir(), `.prompt-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   fs.writeFileSync(promptFile, prompt);
 
+  // If Ollama is configured for this skill's tier, set env vars for the subprocess
+  const spawnEnv = buildOllamaEnv(ollamaResolution);
+
   const proc = Bun.spawn(['sh', '-c', `cat "${promptFile}" | claude ${args.map(a => `"${a}"`).join(' ')}`], {
     cwd: workingDirectory,
     stdout: 'pipe',
     stderr: 'pipe',
+    env: spawnEnv,
   });
 
   // Race against timeout
