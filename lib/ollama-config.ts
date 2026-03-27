@@ -95,8 +95,11 @@ export const SKILL_TIERS: Record<string, ModelTier> = {
 
 // --- Config loading ---
 
-const STATE_DIR = process.env.GSTACK_STATE_DIR ?? path.join(os.homedir(), '.gstack');
-const CONFIG_FILE = path.join(STATE_DIR, 'config.yaml');
+/** Get the config file path. Re-reads env each time for testability. */
+function getConfigPath(): string {
+  const stateDir = process.env.GSTACK_STATE_DIR ?? path.join(os.homedir(), '.gstack');
+  return path.join(stateDir, 'config.yaml');
+}
 
 /** Simple YAML key-value parser (same flat format as gstack-config). */
 function parseSimpleYaml(content: string): Record<string, string> {
@@ -133,7 +136,7 @@ export function loadOllamaConfig(): OllamaConfig | null {
   if (cachedConfig !== undefined) return cachedConfig;
 
   try {
-    const raw = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const raw = fs.readFileSync(getConfigPath(), 'utf-8');
     const kv = parseSimpleYaml(raw);
 
     if (kv['ollama_enabled'] !== 'true') {
@@ -230,7 +233,7 @@ export function getCodexBackend(): CodexBackendConfig {
   // Even without Ollama enabled, check for codex_backend config
   let kv: Record<string, string> = {};
   try {
-    const raw = fs.readFileSync(CONFIG_FILE, 'utf-8');
+    const raw = fs.readFileSync(getConfigPath(), 'utf-8');
     kv = parseSimpleYaml(raw);
   } catch {
     return { backend: 'codex' };

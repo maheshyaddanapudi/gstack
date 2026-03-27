@@ -369,8 +369,8 @@ cmd_status() {
   fi
 
   # Check each tier model
-  for tier_info in "1:$tier1:Tier 1" "2:$tier2:Tier 2" "3:$tier3:Tier 3"; do
-    IFS=: read -r num model label <<< "$tier_info"
+  for tier_info in "1|$tier1|Tier 1" "2|$tier2|Tier 2" "3|$tier3|Tier 3"; do
+    IFS='|' read -r num model label <<< "$tier_info"
     if [ -z "$model" ]; then
       warn "$label:     not configured"
     elif model_exists "$url" "$model" 2>/dev/null; then
