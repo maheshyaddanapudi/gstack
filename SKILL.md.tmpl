@@ -49,6 +49,11 @@ Auto-shuts down after 30 min idle. State persists between calls (cookies, tabs, 
 
 {{BROWSE_SETUP}}
 
+`SKILL_DIR` is the directory containing this skill. Resolve it as:
+- **Repo-local install:** `<git-root>/.claude/skills/gstack`
+- **Global install:** `~/.claude/skills/gstack`
+The setup script above auto-detects this — `$B` will be set to the binary path after running it.
+
 ## IMPORTANT
 
 - Use the compiled binary via Bash: `$B <command>`

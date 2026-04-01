@@ -286,6 +286,11 @@ If `NEEDS_SETUP`:
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed: `curl -fsSL https://bun.sh/install | bash`
 
+`SKILL_DIR` is the directory containing this skill. Resolve it as:
+- **Repo-local install:** `<git-root>/.claude/skills/gstack`
+- **Global install:** `~/.claude/skills/gstack`
+The setup script above auto-detects this — `$B` will be set to the binary path after running it.
+
 ## IMPORTANT
 
 - Use the compiled binary via Bash: `$B <command>`
