@@ -1,0 +1,449 @@
+#!/usr/bin/env bash
+# gstack-ollama — Ollama setup wizard, status checker, and smoke tester.
+#
+# Usage:
+#   gstack-ollama setup     — Interactive setup: detect Ollama, pick models, write config
+#   gstack-ollama status    — Show Ollama + model health
+#   gstack-ollama test      — Smoke test each configured tier
+#
+# Env overrides (for testing):
+#   GSTACK_STATE_DIR  — override ~/.gstack state directory
+#   OLLAMA_HOST       — override Ollama base URL
+set -euo pipefail
+
+GSTACK_DIR="${GSTACK_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
+STATE_DIR="${GSTACK_STATE_DIR:-$HOME/.gstack}"
+CONFIG_FILE="$STATE_DIR/config.yaml"
+CONFIG_BIN="$GSTACK_DIR/bin/gstack-config"
+
+# ─── Colors ───────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
+warn() { echo -e "  ${YELLOW}!${NC} $*"; }
+fail() { echo -e "  ${RED}✗${NC} $*"; }
+info() { echo -e "  ${CYAN}→${NC} $*"; }
+
+# ─── Config helpers ───────────────────────────────────────────
+config_get() { "$CONFIG_BIN" get "$1" 2>/dev/null || true; }
+config_set() { "$CONFIG_BIN" set "$1" "$2"; }
+
+# ─── Detect Ollama base URL ──────────────────────────────────
+get_ollama_url() {
+  local url
+  url=$(config_get ollama_base_url)
+  [ -z "$url" ] && url="${OLLAMA_HOST:-http://localhost:11434}"
+  echo "$url"
+}
+
+# ─── Check Ollama is running ─────────────────────────────────
+check_ollama_running() {
+  local url="$1"
+  if curl -sf "$url/api/tags" >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
+}
+
+# ─── List available models ───────────────────────────────────
+list_models() {
+  local url="$1"
+  curl -sf "$url/api/tags" 2>/dev/null | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    models = data.get('models', [])
+    for m in models:
+        name = m.get('name', '?')
+        size_gb = m.get('size', 0) / (1024**3)
+        params = m.get('details', {}).get('parameter_size', '?')
+        print(f'{name}\t{size_gb:.1f} GB\t{params}')
+except:
+    pass
+" 2>/dev/null || true
+}
+
+# ─── Check if a specific model exists ────────────────────────
+model_exists() {
+  local url="$1" model="$2"
+  curl -sf "$url/api/tags" 2>/dev/null | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+names = [m['name'] for m in data.get('models', [])]
+# Also check without tag (e.g., 'qwen3:32b' matches 'qwen3:32b')
+sys.exit(0 if '$model' in names else 1)
+" 2>/dev/null
+}
+
+# ─── Prompt user to select a model ────────────────────────────
+select_model() {
+  local tier="$1" default="$2" suggestion="$3" url="$4"
+
+  echo ""
+  echo -e "${BOLD}Tier $tier model${NC} (suggested: $suggestion)"
+  echo -e "  Available models:"
+
+  local models
+  models=$(list_models "$url")
+  if [ -n "$models" ]; then
+    echo "$models" | while IFS=$'\t' read -r name size params; do
+      echo "    $name  ($size, $params)"
+    done
+  else
+    warn "Could not list models"
+  fi
+
+  echo ""
+  read -rp "  Model name [$default]: " choice
+  choice="${choice:-$default}"
+  echo "$choice"
+}
+
+# ─── Smoke test a model ──────────────────────────────────────
+smoke_test() {
+  local url="$1" model="$2" tier_name="$3"
+
+  echo -n "  Testing $tier_name ($model)... "
+
+  local response
+  response=$(curl -sf "$url/v1/chat/completions" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "model": "'"$model"'",
+      "messages": [{"role": "user", "content": "Reply with exactly: OLLAMA_OK"}],
+      "max_tokens": 20,
+      "temperature": 0
+    }' 2>/dev/null)
+
+  if echo "$response" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+content = data['choices'][0]['message']['content']
+sys.exit(0 if 'OLLAMA_OK' in content else 1)
+" 2>/dev/null; then
+    echo -e "${GREEN}OK${NC}"
+    return 0
+  else
+    echo -e "${RED}FAILED${NC}"
+    return 1
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════
+# SETUP COMMAND
+# ═══════════════════════════════════════════════════════════════
+cmd_setup() {
+  echo ""
+  echo -e "${BOLD}gstack Ollama Setup${NC}"
+  echo "═══════════════════════════════════════════════════"
+  echo ""
+
+  # Step 1: Check ollama CLI
+  if ! command -v ollama >/dev/null 2>&1; then
+    fail "Ollama CLI not found."
+    echo ""
+    echo "  Install Ollama:"
+    echo "    macOS:   brew install ollama"
+    echo "    Linux:   curl -fsSL https://ollama.com/install.sh | sh"
+    echo "    Windows: https://ollama.com/download"
+    echo ""
+    exit 1
+  fi
+  ok "Ollama CLI found: $(which ollama)"
+
+  # Step 2: Check Ollama server
+  local url
+  read -rp "  Ollama URL [http://localhost:11434]: " url
+  url="${url:-http://localhost:11434}"
+
+  if ! check_ollama_running "$url"; then
+    fail "Ollama is not running at $url"
+    echo ""
+    echo "  Start it with: ollama serve"
+    echo "  Or set OLLAMA_HOST for a remote server."
+    echo ""
+    exit 1
+  fi
+  ok "Ollama server running at $url"
+
+  # Step 3: List available models
+  echo ""
+  echo -e "${BOLD}Available models:${NC}"
+  local models
+  models=$(list_models "$url")
+  if [ -n "$models" ]; then
+    echo "$models" | while IFS=$'\t' read -r name size params; do
+      echo "  $name  ($size, $params)"
+    done
+  else
+    warn "No models found. You'll need to pull some."
+  fi
+
+  # Step 4: Select models for each tier
+  echo ""
+  echo -e "${BOLD}Select a model for each tier:${NC}"
+
+  local tier1 tier2 tier3
+
+  echo ""
+  echo -e "  ${CYAN}Tier 1${NC} — Primary reasoning/coding (32B+ recommended)"
+  echo "    Used by: /review, /qa, /ship, /autoplan, /plan-ceo-review, etc."
+  read -rp "  Model name [qwen3:32b]: " tier1
+  tier1="${tier1:-qwen3:32b}"
+
+  echo ""
+  echo -e "  ${CYAN}Tier 2${NC} — Moderate analysis (14B recommended)"
+  echo "    Used by: /investigate, /cso, /retro, /canary, etc."
+  read -rp "  Model name [qwen3:14b]: " tier2
+  tier2="${tier2:-qwen3:14b}"
+
+  echo ""
+  echo -e "  ${CYAN}Tier 3${NC} — Simple tasks/tool execution (4-7B recommended)"
+  echo "    Used by: /browse, /benchmark, /freeze, /guard, etc."
+  read -rp "  Model name [qwen3:7b]: " tier3
+  tier3="${tier3:-qwen3:7b}"
+
+  # Step 5: Offer to pull missing models
+  echo ""
+  for m in "$tier1" "$tier2" "$tier3"; do
+    if ! model_exists "$url" "$m"; then
+      echo -e "  ${YELLOW}Model '$m' not found locally.${NC}"
+      read -rp "  Pull it now? (y/N): " pull
+      if [ "${pull,,}" = "y" ]; then
+        echo "  Pulling $m (this may take a while)..."
+        ollama pull "$m"
+      fi
+    else
+      ok "Model '$m' available"
+    fi
+  done
+
+  # Step 6: Provider mode
+  echo ""
+  echo -e "${BOLD}Provider mode:${NC}"
+  echo "  1) local  — All skills use Ollama (no cloud API needed)"
+  echo "  2) hybrid — Complex skills use cloud, simple skills use Ollama"
+  echo "  3) cloud  — Cloud only, Ollama disabled (default)"
+  read -rp "  Choice [1]: " mode_choice
+  mode_choice="${mode_choice:-1}"
+
+  local provider_mode="local"
+  local hybrid_cloud="" hybrid_local=""
+  case "$mode_choice" in
+    1) provider_mode="local" ;;
+    2)
+      provider_mode="hybrid"
+      hybrid_cloud="[1]"
+      hybrid_local="[2, 3]"
+      echo ""
+      info "Hybrid default: Tier 1 (complex) → cloud, Tiers 2-3 → Ollama"
+      read -rp "  Cloud tiers (comma-separated) [1]: " hc
+      read -rp "  Local tiers (comma-separated) [2,3]: " hl
+      hybrid_cloud="[${hc:-1}]"
+      hybrid_local="[${hl:-2, 3}]"
+      ;;
+    3) provider_mode="cloud" ;;
+  esac
+
+  # Step 7: Codex backend
+  echo ""
+  echo -e "${BOLD}/codex skill backend:${NC}"
+  echo "  1) codex  — Use OpenAI Codex CLI (requires codex installed)"
+  echo "  2) claude — Use Claude as adversarial reviewer"
+  echo "  3) ollama — Use Ollama model as adversarial reviewer"
+  read -rp "  Choice [3]: " codex_choice
+  codex_choice="${codex_choice:-3}"
+
+  local codex_backend="codex" codex_model=""
+  case "$codex_choice" in
+    1) codex_backend="codex" ;;
+    2) codex_backend="claude" ;;
+    3)
+      codex_backend="ollama"
+      read -rp "  Codex Ollama model [$tier1]: " codex_model
+      codex_model="${codex_model:-$tier1}"
+      ;;
+  esac
+
+  # Step 8: Context window
+  echo ""
+  read -rp "  Context window size [32768]: " num_ctx
+  num_ctx="${num_ctx:-32768}"
+
+  # Step 9: Write config
+  echo ""
+  echo -e "${BOLD}Writing config to $CONFIG_FILE...${NC}"
+  mkdir -p "$STATE_DIR"
+
+  config_set ollama_enabled true
+  config_set ollama_base_url "$url"
+  config_set ollama_tier1_model "$tier1"
+  config_set ollama_tier2_model "$tier2"
+  config_set ollama_tier3_model "$tier3"
+  config_set ollama_num_ctx "$num_ctx"
+  config_set ollama_thinking true
+  config_set provider_mode "$provider_mode"
+  config_set codex_backend "$codex_backend"
+
+  if [ "$provider_mode" = "hybrid" ]; then
+    config_set hybrid_cloud_tiers "$hybrid_cloud"
+    config_set hybrid_local_tiers "$hybrid_local"
+  fi
+
+  if [ -n "$codex_model" ]; then
+    config_set codex_ollama_model "$codex_model"
+  fi
+
+  ok "Config written"
+
+  # Step 10: Generate env file
+  local env_file="$STATE_DIR/ollama-env.sh"
+  cat > "$env_file" <<ENVEOF
+# Source this file to use Ollama as the default LLM backend:
+#   source $env_file
+export ANTHROPIC_BASE_URL=$url
+export ANTHROPIC_AUTH_TOKEN=ollama
+export ANTHROPIC_API_KEY=
+ENVEOF
+  ok "Env file written: $env_file"
+
+  # Step 11: Run smoke tests
+  echo ""
+  echo -e "${BOLD}Running smoke tests...${NC}"
+  local all_pass=true
+  smoke_test "$url" "$tier1" "Tier 1" || all_pass=false
+  smoke_test "$url" "$tier2" "Tier 2" || all_pass=false
+  smoke_test "$url" "$tier3" "Tier 3" || all_pass=false
+
+  # Summary
+  echo ""
+  echo "═══════════════════════════════════════════════════"
+  if $all_pass; then
+    ok "Setup complete! All tiers working."
+  else
+    warn "Setup complete with warnings. Some models may need pulling."
+  fi
+  echo ""
+  echo "  Next steps:"
+  echo "    1. Source the env file:  source $env_file"
+  echo "    2. Run a skill:         claude --model $tier1 -p 'hello'"
+  echo "    3. Check status:        gstack-ollama status"
+  echo ""
+}
+
+# ═══════════════════════════════════════════════════════════════
+# STATUS COMMAND
+# ═══════════════════════════════════════════════════════════════
+cmd_status() {
+  echo ""
+  echo -e "${BOLD}gstack Ollama Status${NC}"
+  echo "═══════════════════════════════════════════════════"
+  echo ""
+
+  local enabled url tier1 tier2 tier3 mode codex_be
+
+  enabled=$(config_get ollama_enabled)
+  if [ "$enabled" != "true" ]; then
+    warn "Ollama not configured. Run: gstack-ollama setup"
+    echo ""
+    return
+  fi
+
+  url=$(get_ollama_url)
+  tier1=$(config_get ollama_tier1_model)
+  tier2=$(config_get ollama_tier2_model)
+  tier3=$(config_get ollama_tier3_model)
+  mode=$(config_get provider_mode)
+  codex_be=$(config_get codex_backend)
+
+  # Check server
+  if check_ollama_running "$url"; then
+    ok "Ollama:     Running ($url)"
+  else
+    fail "Ollama:     NOT RUNNING ($url)"
+  fi
+
+  # Check each tier model
+  for tier_info in "1|$tier1|Tier 1" "2|$tier2|Tier 2" "3|$tier3|Tier 3"; do
+    IFS='|' read -r num model label <<< "$tier_info"
+    if [ -z "$model" ]; then
+      warn "$label:     not configured"
+    elif model_exists "$url" "$model" 2>/dev/null; then
+      ok "$label:     $model (available)"
+    else
+      fail "$label:     $model (NOT FOUND — run: ollama pull $model)"
+    fi
+  done
+
+  # Provider mode
+  info "Mode:       ${mode:-cloud}"
+
+  # Codex backend
+  local codex_model
+  codex_model=$(config_get codex_ollama_model)
+  if [ "$codex_be" = "ollama" ]; then
+    info "/codex:     ollama backend ($codex_model)"
+  elif [ "$codex_be" = "claude" ]; then
+    info "/codex:     claude backend"
+  else
+    info "/codex:     codex CLI (default)"
+  fi
+
+  echo ""
+}
+
+# ═══════════════════════════════════════════════════════════════
+# TEST COMMAND
+# ═══════════════════════════════════════════════════════════════
+cmd_test() {
+  echo ""
+  echo -e "${BOLD}gstack Ollama Smoke Test${NC}"
+  echo "═══════════════════════════════════════════════════"
+  echo ""
+
+  local url tier1 tier2 tier3
+  url=$(get_ollama_url)
+  tier1=$(config_get ollama_tier1_model)
+  tier2=$(config_get ollama_tier2_model)
+  tier3=$(config_get ollama_tier3_model)
+
+  if ! check_ollama_running "$url"; then
+    fail "Ollama is not running at $url"
+    exit 1
+  fi
+
+  local all_pass=true
+  [ -n "$tier1" ] && { smoke_test "$url" "$tier1" "Tier 1" || all_pass=false; }
+  [ -n "$tier2" ] && { smoke_test "$url" "$tier2" "Tier 2" || all_pass=false; }
+  [ -n "$tier3" ] && { smoke_test "$url" "$tier3" "Tier 3" || all_pass=false; }
+
+  echo ""
+  if $all_pass; then
+    ok "All tiers passed!"
+  else
+    fail "Some tiers failed. Check model availability."
+    exit 1
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════
+case "${1:-}" in
+  setup)  cmd_setup ;;
+  status) cmd_status ;;
+  test)   cmd_test ;;
+  *)
+    echo "Usage: gstack-ollama {setup|status|test}"
+    echo ""
+    echo "  setup   — Interactive wizard: detect Ollama, pick models, write config"
+    echo "  status  — Show Ollama + model health"
+    echo "  test    — Smoke test each configured tier"
+    exit 1
+    ;;
+esac

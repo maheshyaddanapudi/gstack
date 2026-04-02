@@ -10,6 +10,12 @@
  * - Output is JSONL with different event types (item.completed, turn.completed, thread.started)
  * - Uses `--json` flag instead of `--output-format stream-json`
  * - Needs temp HOME with skill installed at ~/.codex/skills/{skillName}/SKILL.md
+ *
+ * Backend note: This runner always uses the Codex CLI binary. When the /codex
+ * skill is configured to use claude or ollama backends (via codex_backend in
+ * ~/.gstack/config.yaml), the backend switching happens in the skill template
+ * itself — it spawns `claude -p` instead of `codex exec`. This runner is only
+ * used for E2E tests that specifically test the Codex CLI integration.
  */
 
 import * as fs from 'fs';

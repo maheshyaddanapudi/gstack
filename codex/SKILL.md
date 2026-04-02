@@ -371,15 +371,39 @@ assumptions, catches things you might miss. Present its output faithfully, not s
 
 ---
 
-## Step 0: Check codex binary
+## Step 0: Detect backend
 
+Check the configured backend for /codex. The backend is set in `~/.gstack/config.yaml`
+under the `codex_backend` key. Valid values: `codex` (default), `claude`, `ollama`.
+
+```bash
+BACKEND=$(grep '^codex_backend:' ~/.gstack/config.yaml 2>/dev/null | awk '{print $2}' | tr -d '[:space:]')
+[ -z "$BACKEND" ] && BACKEND="codex"
+echo "BACKEND: $BACKEND"
+```
+
+**If `BACKEND=codex`** (default): Check for codex binary:
 ```bash
 CODEX_BIN=$(which codex 2>/dev/null || echo "")
 [ -z "$CODEX_BIN" ] && echo "NOT_FOUND" || echo "FOUND: $CODEX_BIN"
 ```
 
 If `NOT_FOUND`: stop and tell the user:
-"Codex CLI not found. Install it: `npm install -g @openai/codex` or see https://github.com/openai/codex"
+"Codex CLI not found. Install it: `npm install -g @openai/codex` or see https://github.com/openai/codex
+Alternatively, configure a different backend: `gstack-config set codex_backend ollama` or `gstack-config set codex_backend claude`"
+
+**If `BACKEND=claude`**: No binary check needed. Steps below will use `claude -p` instead
+of `codex exec`/`codex review`. Skip binary check and proceed to Step 1.
+
+**If `BACKEND=ollama`**: Check Ollama is running:
+```bash
+OLLAMA_URL=$(grep '^ollama_base_url:' ~/.gstack/config.yaml 2>/dev/null | awk '{print $2}' | tr -d '[:space:]')
+[ -z "$OLLAMA_URL" ] && OLLAMA_URL="http://localhost:11434"
+CODEX_MODEL=$(grep '^codex_ollama_model:' ~/.gstack/config.yaml 2>/dev/null | awk '{print $2}' | tr -d '[:space:]')
+[ -z "$CODEX_MODEL" ] && CODEX_MODEL="qwen3:32b"
+curl -sf "$OLLAMA_URL/api/tags" >/dev/null 2>&1 && echo "OLLAMA_OK: $OLLAMA_URL model=$CODEX_MODEL" || echo "OLLAMA_UNREACHABLE"
+```
+If `OLLAMA_UNREACHABLE`: stop and tell the user: "Ollama is not running at $OLLAMA_URL. Start it with `ollama serve`."
 
 ---
 
@@ -759,6 +783,37 @@ docs and APIs during review. This is OpenAI's cached index — fast, no extra co
 
 If the user specifies a model (e.g., `/codex review -m gpt-5.1-codex-max`
 or `/codex challenge -m gpt-5.2`), pass the `-m` flag through to codex.
+
+---
+
+## Backend-Specific Execution
+
+When `BACKEND` is not `codex` (detected in Step 0), replace all `codex review` and
+`codex exec` commands with the equivalent claude -p invocation:
+
+**For `BACKEND=claude`:**
+Replace `codex review --base <base>` with:
+```bash
+git diff origin/<base> | claude -p --model claude-sonnet-4-6 --dangerously-skip-permissions "You are a brutally honest code reviewer. Review this diff for bugs, security issues, and quality problems. Be adversarial. No compliments. <diff via stdin>"
+```
+
+Replace `codex exec "<prompt>"` with:
+```bash
+echo "<prompt>" | claude -p --model claude-sonnet-4-6 --dangerously-skip-permissions --allowed-tools Bash Read Grep Glob
+```
+
+**For `BACKEND=ollama`:**
+Same as claude backend, but set environment variables before the command:
+```bash
+OLLAMA_URL=$(grep '^ollama_base_url:' ~/.gstack/config.yaml 2>/dev/null | awk '{print $2}' | tr -d '[:space:]')
+CODEX_MODEL=$(grep '^codex_ollama_model:' ~/.gstack/config.yaml 2>/dev/null | awk '{print $2}' | tr -d '[:space:]')
+ANTHROPIC_BASE_URL="$OLLAMA_URL" ANTHROPIC_AUTH_TOKEN=ollama ANTHROPIC_API_KEY="" \
+  git diff origin/<base> | claude -p --model "$CODEX_MODEL" --dangerously-skip-permissions "..."
+```
+
+The adversarial persona prompt ("brutally honest", "no compliments", "just the problems")
+provides the same value as Codex CLI — the independence comes from using a separate model
+invocation with zero context from the current conversation, not from the provider.
 
 ---
 

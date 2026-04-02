@@ -592,6 +592,8 @@ Re-run loop: invoke /plan-design-review again → re-rate → sections at 8+ get
 
 ## Review Sections (7 passes, after scope is agreed)
 
+**Pass handoff rule:** After each pass, carry forward the updated plan text. Each subsequent pass reads the plan AS EDITED by all prior passes — never the original. When you rate a dimension, you are rating the current (edited) version.
+
 ### Pass 1: Information Architecture
 Rate 0-10: Does the plan define what the user sees first, second, third?
 FIX TO 10: Add information hierarchy to the plan. Include ASCII diagram of screen/page structure and navigation flow. Apply "constraint worship" — if you can only show 3 things, which 3?
@@ -624,6 +626,8 @@ Apply time-horizon design: 5-sec visceral, 5-min behavioral, 5-year reflective.
 ### Pass 4: AI Slop Risk
 Rate 0-10: Does the plan describe specific, intentional UI — or generic patterns?
 FIX TO 10: Rewrite vague UI descriptions with specific alternatives.
+
+**Execution order:** (1) Classify the plan's project type using the classifier below, (2) apply the hard rules for that type, (3) run the litmus checks, (4) scan for slop blacklist patterns.
 
 ### Design Hard Rules
 

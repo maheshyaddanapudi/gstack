@@ -286,6 +286,16 @@ If `NEEDS_SETUP`:
 2. Run: `cd <SKILL_DIR> && ./setup`
 3. If `bun` is not installed: `curl -fsSL https://bun.sh/install | bash`
 
+`SKILL_DIR` is the directory containing this skill. Resolve it as:
+- **Repo-local install:** `<git-root>/.claude/skills/gstack`
+- **Global install:** `~/.claude/skills/gstack`
+
+The setup script auto-detects the binary location. Interpret the output:
+- `READY: /path/to/browse` → binary found. Use `$B` as the command prefix (the variable is already set).
+- `NEEDS_SETUP` → binary not compiled. Ask the user, then run `cd <SKILL_DIR> && ./setup` (requires `bun`; install via `curl -fsSL https://bun.sh/install | bash` if missing).
+
+If setup fails, check: (1) `bun --version` exists, (2) write permission on `browse/dist/`, (3) `npx playwright install chromium` if browser tests fail.
+
 ## IMPORTANT
 
 - Use the compiled binary via Bash: `$B <command>`

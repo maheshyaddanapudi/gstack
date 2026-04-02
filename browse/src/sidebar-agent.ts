@@ -12,6 +12,7 @@
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getModelForTier, buildOllamaEnv } from '../../lib/ollama-config';
 
 const QUEUE = path.join(process.env.HOME || '/tmp', '.gstack', 'sidebar-agent-queue.jsonl');
 const SERVER_PORT = parseInt(process.env.BROWSE_SERVER_PORT || '34567', 10);
@@ -166,10 +167,19 @@ async function askClaude(queueEntry: any): Promise<void> {
     let effectiveCwd = cwd || process.cwd();
     try { fs.accessSync(effectiveCwd); } catch { effectiveCwd = process.cwd(); }
 
+    // Sidebar agent is Tier 3 (simple chat, no complex reasoning)
+    const ollamaResolution = getModelForTier(3);
+    const baseEnv = buildOllamaEnv(ollamaResolution);
+
+    // If using Ollama, add --model flag
+    if (ollamaResolution.model) {
+      claudeArgs = ['--model', ollamaResolution.model, ...claudeArgs];
+    }
+
     const proc = spawn('claude', claudeArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd: effectiveCwd,
-      env: { ...process.env, BROWSE_STATE_FILE: stateFile || '' },
+      env: { ...baseEnv, BROWSE_STATE_FILE: stateFile || '' },
     });
 
     proc.stdin.end();

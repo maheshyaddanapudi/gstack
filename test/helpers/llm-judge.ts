@@ -8,6 +8,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { getModelForTier, buildOllamaEnv } from '../../lib/ollama-config';
 
 export interface JudgeScore {
   clarity: number;       // 1-5
@@ -26,14 +27,24 @@ export interface OutcomeJudgeResult {
 }
 
 /**
- * Call claude-sonnet-4-6 with a prompt, extract JSON response.
+ * Call an LLM judge with a prompt, extract JSON response.
+ * Uses Ollama Tier 2 model when configured, otherwise claude-sonnet-4-6.
  * Retries once on 429 rate limit errors.
  */
 export async function callJudge<T>(prompt: string): Promise<T> {
-  const client = new Anthropic();
+  // LLM judge is Tier 2 (structured analysis, no code gen)
+  const resolution = getModelForTier(2);
+  const judgeModel = resolution.model
+    ?? process.env.EVALS_MODEL
+    ?? 'claude-sonnet-4-6';
+
+  const client = new Anthropic({
+    ...(resolution.baseUrl ? { baseURL: resolution.baseUrl } : {}),
+    ...(resolution.baseUrl ? { apiKey: 'ollama' } : {}),
+  });
 
   const makeRequest = () => client.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: judgeModel,
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   });

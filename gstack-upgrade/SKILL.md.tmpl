@@ -62,7 +62,7 @@ echo "$_REMOTE_VER $_NEW_LEVEL $(date +%s)" > "$_SNOOZE_FILE"
 ```
 Note: `{new}` is the remote version from the `UPGRADE_AVAILABLE` output — substitute it from the update check result.
 
-Tell user the snooze duration: "Next reminder in 24h" (or 48h or 1 week, depending on level). Tip: "Set `auto_upgrade: true` in `~/.gstack/config.yaml` for automatic upgrades."
+Map `_NEW_LEVEL` to the snooze duration: level 1 = 24h, level 2 = 48h, level 3 = 1 week. Tell user the snooze duration: "Next reminder in 24h" (or 48h or 1 week). Tip: "Set `auto_upgrade: true` in `~/.gstack/config.yaml` for automatic upgrades."
 
 **If "Never ask again":**
 ```bash
@@ -116,11 +116,14 @@ Use the install type and directory detected in Step 2:
 **For git installs** (global-git, local-git):
 ```bash
 cd "$INSTALL_DIR"
+cp -Rf "$INSTALL_DIR" "$INSTALL_DIR.bak"
 STASH_OUTPUT=$(git stash 2>&1)
 git fetch origin
 git reset --hard origin/main
 ./setup
+rm -rf "$INSTALL_DIR.bak"
 ```
+If `./setup` fails, restore from backup: `rm -rf "$INSTALL_DIR" && mv "$INSTALL_DIR.bak" "$INSTALL_DIR"` and warn the user.
 If `$STASH_OUTPUT` contains "Saved working directory", warn the user: "Note: local changes were stashed. Run `git stash pop` in the skill directory to restore them."
 
 **For vendored installs** (vendored, vendored-global):
@@ -179,7 +182,7 @@ rm -f ~/.gstack/update-snoozed
 
 ### Step 6: Show What's New
 
-Read `$INSTALL_DIR/CHANGELOG.md`. Find all version entries between the old version and the new version. Summarize as 5-7 bullets grouped by theme. Don't overwhelm — focus on user-facing changes. Skip internal refactors unless they're significant.
+Read `$INSTALL_DIR/CHANGELOG.md`. Version entries are `## vX.Y.Z` headings. Scan from the top, collect all entries where the version is newer than `$OLD_VERSION`. For each, read the bullets below until the next `##` heading. Summarize the combined changes as 5-7 bullets grouped by theme. Don't overwhelm — focus on user-facing changes. Skip internal refactors unless they're significant.
 
 Format:
 ```

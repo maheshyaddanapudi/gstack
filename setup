@@ -25,7 +25,7 @@ HOST="claude"
 LOCAL_INSTALL=0
 while [ $# -gt 0 ]; do
   case "$1" in
-    --host) [ -z "$2" ] && echo "Missing value for --host (expected claude, codex, kiro, or auto)" >&2 && exit 1; HOST="$2"; shift 2 ;;
+    --host) [ -z "$2" ] && echo "Missing value for --host (expected claude, codex, kiro, ollama, or auto)" >&2 && exit 1; HOST="$2"; shift 2 ;;
     --host=*) HOST="${1#--host=}"; shift ;;
     --local) LOCAL_INSTALL=1; shift ;;
     *) shift ;;
@@ -33,8 +33,8 @@ while [ $# -gt 0 ]; do
 done
 
 case "$HOST" in
-  claude|codex|kiro|auto) ;;
-  *) echo "Unknown --host value: $HOST (expected claude, codex, kiro, or auto)" >&2; exit 1 ;;
+  claude|codex|kiro|ollama|auto) ;;
+  *) echo "Unknown --host value: $HOST (expected claude, codex, kiro, ollama, or auto)" >&2; exit 1 ;;
 esac
 
 # --local: install to .claude/skills/ in the current working directory
@@ -67,6 +67,9 @@ elif [ "$HOST" = "codex" ]; then
   INSTALL_CODEX=1
 elif [ "$HOST" = "kiro" ]; then
   INSTALL_KIRO=1
+elif [ "$HOST" = "ollama" ]; then
+  # Ollama uses Claude Code CLI pointed at Ollama — install like Claude
+  INSTALL_CLAUDE=1
 fi
 
 migrate_direct_codex_install() {
@@ -453,3 +456,10 @@ if [ ! -d "$HOME/.gstack" ]; then
   echo "  Welcome! Run /gstack-upgrade anytime to stay current."
 fi
 rm -f /tmp/gstack-latest-version
+
+# 9. Ollama setup (when --host ollama is used)
+if [ "$HOST" = "ollama" ]; then
+  echo ""
+  echo "Running Ollama setup wizard..."
+  "$SOURCE_GSTACK_DIR/bin/gstack-ollama" setup
+fi
