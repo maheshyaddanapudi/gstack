@@ -1,0 +1,19 @@
+commit	aggregate_score	status	description
+8a77a6e	246	keep	baseline - 25/25 pass, avg 4.1/5
+161d607	246	discard	canary: add severity table with explicit thresholds
+f73e76f	246	discard	design-review: add structured classification table
+4439e67	249	keep	gstack: clarify SKILL_DIR resolution paths in setup section (+3)
+1db61e0	249	discard	gstack: add setup output interpretation guide
+9caf7d2	249	discard	benchmark: add performance budget thresholds with sources
+8b2ad19	249	discard	setup-deploy: expand Netlify platform detection
+ba6c45f	250	keep	gstack: add setup output interpretation and troubleshooting guide (+1)
+bfec315	250	discard	canary: add severity threshold table and timing guidance
+e428284	250	discard	benchmark: add FCP/LCP collection snippets and trend enumeration
+c8967fb	250	discard	canary: add network check for broken links and text snapshot ref
+411b305	250	discard	design-review: clarify deferred finding mechanism
+95bb2e7	250	discard	gstack-upgrade: specify CHANGELOG.md version heading format
+
+# Phase 2 complete. 13 experiments, 2 kept, 11 discards. Score: 246 → 250 (+4)
+# All template-controlled sections stable at c:4/c:4/a:4. Remaining c:3 gaps are in generated placeholders (commands.ts, QA_METHODOLOGY).
+bfec315	250	discard	canary: add severity threshold table and timing guidance
+e428284	250	discard	benchmark: add FCP/LCP collection snippets and trend enumeration
