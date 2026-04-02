@@ -12,8 +12,9 @@ e428284	250	discard	benchmark: add FCP/LCP collection snippets and trend enumera
 c8967fb	250	discard	canary: add network check for broken links and text snapshot ref
 411b305	250	discard	design-review: clarify deferred finding mechanism
 95bb2e7	250	discard	gstack-upgrade: specify CHANGELOG.md version heading format
-
-# Phase 2 complete. 13 experiments, 2 kept, 11 discards. Score: 246 → 250 (+4)
-# All template-controlled sections stable at c:4/c:4/a:4. Remaining c:3 gaps are in generated placeholders (commands.ts, QA_METHODOLOGY).
-bfec315	250	discard	canary: add severity threshold table and timing guidance
-e428284	250	discard	benchmark: add FCP/LCP collection snippets and trend enumeration
+8594a5e	251	keep	plan-design-review: add pass handoff rule and Pass 4 execution order (+1)
+909e172	251	discard	setup-deploy: add Step 1 context, Netlify CLI steps, merge method detection
+11f2a95	254	keep	gstack-upgrade: add snooze-level mapping, CHANGELOG format, git backup/restore (+3)
+668aa4c	254	discard	benchmark: add FCP/LCP snippets, mode detection, trend enumeration
+3c35b75	254	discard	canary: add page-name slug, perf format, network check, alert state tracking
+dcfe805	254	discard	design-review: add baseline context and deferred mechanism
