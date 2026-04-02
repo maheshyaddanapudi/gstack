@@ -18,3 +18,10 @@ c8967fb	250	discard	canary: add network check for broken links and text snapshot
 668aa4c	254	discard	benchmark: add FCP/LCP snippets, mode detection, trend enumeration
 3c35b75	254	discard	canary: add page-name slug, perf format, network check, alert state tracking
 dcfe805	254	discard	design-review: add baseline context and deferred mechanism
+6019bb4	254	discard	retro: fix duplicate cmd #12, timezone, LOC/hour multi-author
+692bae9	254	discard	plan-design-review: add Pass 7 stop rule and re-rate instruction
+077ad76	254	discard	gstack: add SKILL_DIR auto-detection bash snippet
+
+# Final: 22 experiments, 5 kept, 17 discards. Score: 246 → 254 (+8)
+# Kept: setup block (+4), plan-design-review (+1), gstack-upgrade (+3)
+# Angles exhausted: actionability=4 cluster, structural fixes, design placeholders, qa-only injection, setup block
