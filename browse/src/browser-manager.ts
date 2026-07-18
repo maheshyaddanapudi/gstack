@@ -152,9 +152,11 @@ export class BrowserManager {
     let useHeadless = true;
 
     // Docker/CI: Chromium sandbox requires unprivileged user namespaces which
-    // are typically disabled in containers. Detect container environment and
-    // add --no-sandbox automatically.
-    if (process.env.CI || process.env.CONTAINER) {
+    // are typically disabled in containers. Root is also unsupported by the
+    // sandbox (crbug.com/638180) — common in containers that don't set CI.
+    // Detect either case and add --no-sandbox automatically.
+    const isRoot = typeof process.getuid === 'function' && process.getuid() === 0;
+    if (process.env.CI || process.env.CONTAINER || isRoot) {
       launchArgs.push('--no-sandbox');
     }
 
