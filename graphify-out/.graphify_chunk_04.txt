@@ -1,0 +1,16 @@
+/home/user/gstack/plan-eng-review/SKILL.md
+/home/user/gstack/qa/SKILL.md
+/home/user/gstack/qa-only/SKILL.md
+/home/user/gstack/qa/references/issue-taxonomy.md
+/home/user/gstack/qa/templates/qa-report-template.md
+/home/user/gstack/retro/SKILL.md
+/home/user/gstack/review/SKILL.md
+/home/user/gstack/review/TODOS-format.md
+/home/user/gstack/review/checklist.md
+/home/user/gstack/review/design-checklist.md
+/home/user/gstack/review/greptile-triage.md
+/home/user/gstack/setup-browser-cookies/SKILL.md
+/home/user/gstack/setup-deploy/SKILL.md
+/home/user/gstack/ship/SKILL.md
+/home/user/gstack/test/fixtures/review-eval-design-slop.html
+/home/user/gstack/unfreeze/SKILL.md
