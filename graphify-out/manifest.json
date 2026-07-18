@@ -1,0 +1,1117 @@
+{
+  "/home/user/gstack/bin/chrome-cdp": {
+    "mtime": 1784337556.8031085,
+    "ast_hash": "70bff92c46b27a51033e47c478b2a50c",
+    "semantic_hash": "70bff92c46b27a51033e47c478b2a50c"
+  },
+  "/home/user/gstack/bin/dev-setup": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "b8ca77f656eea18a075625012c7e009a",
+    "semantic_hash": "b8ca77f656eea18a075625012c7e009a"
+  },
+  "/home/user/gstack/bin/dev-teardown": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "f14f8b9cf650ab724ff287332fad20da",
+    "semantic_hash": "f14f8b9cf650ab724ff287332fad20da"
+  },
+  "/home/user/gstack/bin/gstack-analytics": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "f4e24cc0af573f5a45d96a0787887602",
+    "semantic_hash": "f4e24cc0af573f5a45d96a0787887602"
+  },
+  "/home/user/gstack/bin/gstack-community-dashboard": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "a54369a990d6364257133373b7ca8de5",
+    "semantic_hash": "a54369a990d6364257133373b7ca8de5"
+  },
+  "/home/user/gstack/bin/gstack-config": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "8862620693b291a8c841cdcda967cc41",
+    "semantic_hash": "8862620693b291a8c841cdcda967cc41"
+  },
+  "/home/user/gstack/bin/gstack-diff-scope": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "c8f48fd3e1f1a92cd9606179842c24b8",
+    "semantic_hash": "c8f48fd3e1f1a92cd9606179842c24b8"
+  },
+  "/home/user/gstack/bin/gstack-extension": {
+    "mtime": 1784337556.803848,
+    "ast_hash": "5f65a3a3eca7c0280460069adf5add61",
+    "semantic_hash": "5f65a3a3eca7c0280460069adf5add61"
+  },
+  "/home/user/gstack/bin/gstack-global-discover.ts": {
+    "mtime": 1784337557.599827,
+    "ast_hash": "f01e3db8d48d0f14439a58fd383a4a5c",
+    "semantic_hash": "f01e3db8d48d0f14439a58fd383a4a5c"
+  },
+  "/home/user/gstack/bin/gstack-ollama": {
+    "mtime": 1784337557.599827,
+    "ast_hash": "750caeb30c6bb9b08a8a939ab80f1410",
+    "semantic_hash": "750caeb30c6bb9b08a8a939ab80f1410"
+  },
+  "/home/user/gstack/bin/gstack-repo-mode": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "9881ca5fb551cc0673277203949f6807",
+    "semantic_hash": "9881ca5fb551cc0673277203949f6807"
+  },
+  "/home/user/gstack/bin/gstack-review-log": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "94b0f7e9ba0f2d29e4117cecbe0715e9",
+    "semantic_hash": "94b0f7e9ba0f2d29e4117cecbe0715e9"
+  },
+  "/home/user/gstack/bin/gstack-review-read": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "2846b7ae968dde764c0c45cf924ceb0c",
+    "semantic_hash": "2846b7ae968dde764c0c45cf924ceb0c"
+  },
+  "/home/user/gstack/bin/gstack-slug": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "92a8d0bf6ac33bbdc30451c697950bae",
+    "semantic_hash": "92a8d0bf6ac33bbdc30451c697950bae"
+  },
+  "/home/user/gstack/bin/gstack-telemetry-log": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "f698bd6ed6afc874dfaac9132b9c75bf",
+    "semantic_hash": "f698bd6ed6afc874dfaac9132b9c75bf"
+  },
+  "/home/user/gstack/bin/gstack-telemetry-sync": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "b82ecdd6a575340d517a65aeb6a42fbe",
+    "semantic_hash": "b82ecdd6a575340d517a65aeb6a42fbe"
+  },
+  "/home/user/gstack/bin/gstack-update-check": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "0e00455826ddc1aad6d8f07445218756",
+    "semantic_hash": "0e00455826ddc1aad6d8f07445218756"
+  },
+  "/home/user/gstack/browse/bin/find-browse": {
+    "mtime": 1784337557.608306,
+    "ast_hash": "bb148ebf11055830600b71fa43a30c1a",
+    "semantic_hash": "bb148ebf11055830600b71fa43a30c1a"
+  },
+  "/home/user/gstack/browse/bin/remote-slug": {
+    "mtime": 1784337557.608866,
+    "ast_hash": "1ac90cc966bd745adae3da8ee3711572",
+    "semantic_hash": "1ac90cc966bd745adae3da8ee3711572"
+  },
+  "/home/user/gstack/browse/scripts/build-node-server.sh": {
+    "mtime": 1784337557.608866,
+    "ast_hash": "a07e6eacc03611f6c176f0a83e3713c1",
+    "semantic_hash": "a07e6eacc03611f6c176f0a83e3713c1"
+  },
+  "/home/user/gstack/browse/src/activity.ts": {
+    "mtime": 1784337557.608866,
+    "ast_hash": "b10419d0734f2bd45580bff681ba2e92",
+    "semantic_hash": "b10419d0734f2bd45580bff681ba2e92"
+  },
+  "/home/user/gstack/browse/src/browser-manager.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "f4244579a196857c91b1f21fdd27938e",
+    "semantic_hash": "f4244579a196857c91b1f21fdd27938e"
+  },
+  "/home/user/gstack/browse/src/buffers.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "3447e41b535b98b386c3e6e2da71f3df",
+    "semantic_hash": "3447e41b535b98b386c3e6e2da71f3df"
+  },
+  "/home/user/gstack/browse/src/bun-polyfill.cjs": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "a82b30d9643848a6405536accd02bec8",
+    "semantic_hash": "a82b30d9643848a6405536accd02bec8"
+  },
+  "/home/user/gstack/browse/src/cli.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "ddc598d2a2b42c9589d84b615adb1690",
+    "semantic_hash": "ddc598d2a2b42c9589d84b615adb1690"
+  },
+  "/home/user/gstack/browse/src/commands.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "1eabdb38e7326dee1f474ff7721c7722",
+    "semantic_hash": "1eabdb38e7326dee1f474ff7721c7722"
+  },
+  "/home/user/gstack/browse/src/config.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "10c2e9ca9937922ae5f49057d787e039",
+    "semantic_hash": "10c2e9ca9937922ae5f49057d787e039"
+  },
+  "/home/user/gstack/browse/src/cookie-import-browser.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "9b3d313052c243ade32545b000b05e03",
+    "semantic_hash": "9b3d313052c243ade32545b000b05e03"
+  },
+  "/home/user/gstack/browse/src/cookie-picker-routes.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "6f1045ab8b166f35e7cb73d3d75cedd2",
+    "semantic_hash": "6f1045ab8b166f35e7cb73d3d75cedd2"
+  },
+  "/home/user/gstack/browse/src/cookie-picker-ui.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "e3c60c811876322b27d6974ca7b0619d",
+    "semantic_hash": "e3c60c811876322b27d6974ca7b0619d"
+  },
+  "/home/user/gstack/browse/src/find-browse.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "448cb755d031906e157a0af3a6dfdc06",
+    "semantic_hash": "448cb755d031906e157a0af3a6dfdc06"
+  },
+  "/home/user/gstack/browse/src/meta-commands.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "cb44437f48e035e1cd8e6aecdc9d3564",
+    "semantic_hash": "cb44437f48e035e1cd8e6aecdc9d3564"
+  },
+  "/home/user/gstack/browse/src/platform.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "1edfc05a8ce4212cc87ff4b79d55f4c4",
+    "semantic_hash": "1edfc05a8ce4212cc87ff4b79d55f4c4"
+  },
+  "/home/user/gstack/browse/src/read-commands.ts": {
+    "mtime": 1784337557.6096509,
+    "ast_hash": "2a7584c69fcaf985f03a6ec6dcfd4e37",
+    "semantic_hash": "2a7584c69fcaf985f03a6ec6dcfd4e37"
+  },
+  "/home/user/gstack/browse/src/server.ts": {
+    "mtime": 1784337557.6118271,
+    "ast_hash": "3d13508b0d2c80a271df0cb75fb5c80e",
+    "semantic_hash": "3d13508b0d2c80a271df0cb75fb5c80e"
+  },
+  "/home/user/gstack/browse/src/sidebar-agent.ts": {
+    "mtime": 1784337557.6118271,
+    "ast_hash": "0d08659a1fdbced4bbcddcbcb6322577",
+    "semantic_hash": "0d08659a1fdbced4bbcddcbcb6322577"
+  },
+  "/home/user/gstack/browse/src/snapshot.ts": {
+    "mtime": 1784337557.6118271,
+    "ast_hash": "b6d78cc4b16b80c758f7581d03648bd2",
+    "semantic_hash": "b6d78cc4b16b80c758f7581d03648bd2"
+  },
+  "/home/user/gstack/browse/src/url-validation.ts": {
+    "mtime": 1784337557.6118271,
+    "ast_hash": "266e907ac86c02b5b6fbd02ffbfdc623",
+    "semantic_hash": "266e907ac86c02b5b6fbd02ffbfdc623"
+  },
+  "/home/user/gstack/browse/src/write-commands.ts": {
+    "mtime": 1784337557.6118271,
+    "ast_hash": "06885601262857595359b0064e2927a8",
+    "semantic_hash": "06885601262857595359b0064e2927a8"
+  },
+  "/home/user/gstack/browse/test/activity.test.ts": {
+    "mtime": 1784337557.6118271,
+    "ast_hash": "d4c5b2ef257e3ecae8529916b51bae66",
+    "semantic_hash": "d4c5b2ef257e3ecae8529916b51bae66"
+  },
+  "/home/user/gstack/browse/test/browser-manager-unit.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "55298355f902cc61bf234c822cffad35",
+    "semantic_hash": "55298355f902cc61bf234c822cffad35"
+  },
+  "/home/user/gstack/browse/test/bun-polyfill.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "643f7c481286ede500b3ae4b37e707d7",
+    "semantic_hash": "643f7c481286ede500b3ae4b37e707d7"
+  },
+  "/home/user/gstack/browse/test/commands.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "cc7bd2a9c97d071feebbb5264f99e20b",
+    "semantic_hash": "cc7bd2a9c97d071feebbb5264f99e20b"
+  },
+  "/home/user/gstack/browse/test/config.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "e0082dd1307081ea630d4be25f036cc1",
+    "semantic_hash": "e0082dd1307081ea630d4be25f036cc1"
+  },
+  "/home/user/gstack/browse/test/cookie-import-browser.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "78df81ad4bb25d7e3da383963a909d9c",
+    "semantic_hash": "78df81ad4bb25d7e3da383963a909d9c"
+  },
+  "/home/user/gstack/browse/test/cookie-picker-routes.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "e40794092efd6920de6930f6ebac1337",
+    "semantic_hash": "e40794092efd6920de6930f6ebac1337"
+  },
+  "/home/user/gstack/browse/test/file-drop.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "7bbcb68bdb1ade4713487a5bb20a3c68",
+    "semantic_hash": "7bbcb68bdb1ade4713487a5bb20a3c68"
+  },
+  "/home/user/gstack/browse/test/find-browse.test.ts": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "ab6b463ad6ed0709a00880ceab159ac8",
+    "semantic_hash": "ab6b463ad6ed0709a00880ceab159ac8"
+  },
+  "/home/user/gstack/browse/test/gstack-config.test.ts": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "4930e446facd9b5b56a62bae946d6e8c",
+    "semantic_hash": "4930e446facd9b5b56a62bae946d6e8c"
+  },
+  "/home/user/gstack/browse/test/gstack-ollama.test.ts": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "f4b238b43532a3cb19cf99737e4a1829",
+    "semantic_hash": "f4b238b43532a3cb19cf99737e4a1829"
+  },
+  "/home/user/gstack/browse/test/gstack-update-check.test.ts": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "6adbd0b83165e10f1390038ab62e8555",
+    "semantic_hash": "6adbd0b83165e10f1390038ab62e8555"
+  },
+  "/home/user/gstack/browse/test/handoff.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "e9422b1d8912a977093604db8bd4cbd1",
+    "semantic_hash": "e9422b1d8912a977093604db8bd4cbd1"
+  },
+  "/home/user/gstack/browse/test/path-validation.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "0f8e2888e965452082eabd925141c6a7",
+    "semantic_hash": "0f8e2888e965452082eabd925141c6a7"
+  },
+  "/home/user/gstack/browse/test/platform.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "9965de1bbb2549c3c65f89b9f95f0d94",
+    "semantic_hash": "9965de1bbb2549c3c65f89b9f95f0d94"
+  },
+  "/home/user/gstack/browse/test/sidebar-agent.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "ccbecec06c558d80b1f626a374fabde5",
+    "semantic_hash": "ccbecec06c558d80b1f626a374fabde5"
+  },
+  "/home/user/gstack/browse/test/snapshot.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "d7b23df4e2706f4b40f5b84179c2a682",
+    "semantic_hash": "d7b23df4e2706f4b40f5b84179c2a682"
+  },
+  "/home/user/gstack/browse/test/test-server.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "daaf61c1f15e98deaa5abcc72c028857",
+    "semantic_hash": "daaf61c1f15e98deaa5abcc72c028857"
+  },
+  "/home/user/gstack/browse/test/url-validation.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "222b7c29e812257e67f04bcc67cc8433",
+    "semantic_hash": "222b7c29e812257e67f04bcc67cc8433"
+  },
+  "/home/user/gstack/browse/test/watch.test.ts": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "9041010997a6f104929a76ce661f2b9c",
+    "semantic_hash": "9041010997a6f104929a76ce661f2b9c"
+  },
+  "/home/user/gstack/careful/bin/check-careful.sh": {
+    "mtime": 1784337557.6251292,
+    "ast_hash": "7297019f4b44176b40ac5bf5140ad362",
+    "semantic_hash": "7297019f4b44176b40ac5bf5140ad362"
+  },
+  "/home/user/gstack/conductor.json": {
+    "mtime": 1784337557.6268766,
+    "ast_hash": "3303a9315bcf43f92ca3e2e24abb4e55",
+    "semantic_hash": "3303a9315bcf43f92ca3e2e24abb4e55"
+  },
+  "/home/user/gstack/extension/background.js": {
+    "mtime": 1784337557.636884,
+    "ast_hash": "96ee626af782522dbbcf72103d979f5a",
+    "semantic_hash": "96ee626af782522dbbcf72103d979f5a"
+  },
+  "/home/user/gstack/extension/content.js": {
+    "mtime": 1784337557.6375911,
+    "ast_hash": "452e9fc83ae8ae1fc9668f840825e5fb",
+    "semantic_hash": "452e9fc83ae8ae1fc9668f840825e5fb"
+  },
+  "/home/user/gstack/extension/manifest.json": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "6e575a61c8701c5050adf12b9be03a85",
+    "semantic_hash": "6e575a61c8701c5050adf12b9be03a85"
+  },
+  "/home/user/gstack/extension/popup.js": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "ab24af4b9ba218973022f9161eac95f3",
+    "semantic_hash": "ab24af4b9ba218973022f9161eac95f3"
+  },
+  "/home/user/gstack/extension/sidepanel.js": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "72a58ef1401502220bfc51111fb63cec",
+    "semantic_hash": "72a58ef1401502220bfc51111fb63cec"
+  },
+  "/home/user/gstack/freeze/bin/check-freeze.sh": {
+    "mtime": 1784337557.6400995,
+    "ast_hash": "9f753841828c07938a3c6a5877037734",
+    "semantic_hash": "9f753841828c07938a3c6a5877037734"
+  },
+  "/home/user/gstack/lib/ollama-config.ts": {
+    "mtime": 1784337557.6441252,
+    "ast_hash": "9900b7542785814ef58e4e34682ea6ee",
+    "semantic_hash": "9900b7542785814ef58e4e34682ea6ee"
+  },
+  "/home/user/gstack/lib/worktree.ts": {
+    "mtime": 1784337557.6454005,
+    "ast_hash": "f0f682abf0259b0f5e9c11249055d919",
+    "semantic_hash": "f0f682abf0259b0f5e9c11249055d919"
+  },
+  "/home/user/gstack/package.json": {
+    "mtime": 1784337557.6468754,
+    "ast_hash": "cac889a94f8badccfb51517208d6ab4d",
+    "semantic_hash": "cac889a94f8badccfb51517208d6ab4d"
+  },
+  "/home/user/gstack/scripts/analytics.ts": {
+    "mtime": 1784337557.659183,
+    "ast_hash": "0c4d4ed13168ca3c34c1cc9c0bf73da8",
+    "semantic_hash": "0c4d4ed13168ca3c34c1cc9c0bf73da8"
+  },
+  "/home/user/gstack/scripts/dev-skill.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "25e93459b89a024c4774cfc6f465baaf",
+    "semantic_hash": "25e93459b89a024c4774cfc6f465baaf"
+  },
+  "/home/user/gstack/scripts/discover-skills.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "45f62b1cbcee8e4708f26885741de127",
+    "semantic_hash": "45f62b1cbcee8e4708f26885741de127"
+  },
+  "/home/user/gstack/scripts/eval-compare.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "9fa10da1ecf3255dd799b1940f70b5ff",
+    "semantic_hash": "9fa10da1ecf3255dd799b1940f70b5ff"
+  },
+  "/home/user/gstack/scripts/eval-list.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "59d84452880a72508d166a1beda8937b",
+    "semantic_hash": "59d84452880a72508d166a1beda8937b"
+  },
+  "/home/user/gstack/scripts/eval-select.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "6dfcf921156f853a7d7069c3c15ce7df",
+    "semantic_hash": "6dfcf921156f853a7d7069c3c15ce7df"
+  },
+  "/home/user/gstack/scripts/eval-summary.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "765160423c7d5dfbeb75c3cb4697315b",
+    "semantic_hash": "765160423c7d5dfbeb75c3cb4697315b"
+  },
+  "/home/user/gstack/scripts/eval-watch.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "2885d26c9bbb45464797676a8226519c",
+    "semantic_hash": "2885d26c9bbb45464797676a8226519c"
+  },
+  "/home/user/gstack/scripts/gen-skill-docs.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "d66c57cc9c65a07cfc977fa4b157b60a",
+    "semantic_hash": "d66c57cc9c65a07cfc977fa4b157b60a"
+  },
+  "/home/user/gstack/scripts/resolvers/browse.ts": {
+    "mtime": 1784337557.6609907,
+    "ast_hash": "cdfc8170ad2479a9bf02073ba09fce2d",
+    "semantic_hash": "cdfc8170ad2479a9bf02073ba09fce2d"
+  },
+  "/home/user/gstack/scripts/resolvers/codex-helpers.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "e150f36e58e86bbd0c4c56eea8098544",
+    "semantic_hash": "e150f36e58e86bbd0c4c56eea8098544"
+  },
+  "/home/user/gstack/scripts/resolvers/constants.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "422d3aeb1596df48fa1aca3b621795ea",
+    "semantic_hash": "422d3aeb1596df48fa1aca3b621795ea"
+  },
+  "/home/user/gstack/scripts/resolvers/design.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "4ef70829c8c207b8e1a18ada1d8ebd89",
+    "semantic_hash": "4ef70829c8c207b8e1a18ada1d8ebd89"
+  },
+  "/home/user/gstack/scripts/resolvers/index.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "1dd3bdfb0290bfd751f31d700416a77f",
+    "semantic_hash": "1dd3bdfb0290bfd751f31d700416a77f"
+  },
+  "/home/user/gstack/scripts/resolvers/preamble.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "1787c2ef59ecc408b0c2c6babc69fee4",
+    "semantic_hash": "1787c2ef59ecc408b0c2c6babc69fee4"
+  },
+  "/home/user/gstack/scripts/resolvers/review.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "29bb45852d4b19a108ef66a20fac5241",
+    "semantic_hash": "29bb45852d4b19a108ef66a20fac5241"
+  },
+  "/home/user/gstack/scripts/resolvers/testing.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "d09e00b46a32473408a670ef94b6359b",
+    "semantic_hash": "d09e00b46a32473408a670ef94b6359b"
+  },
+  "/home/user/gstack/scripts/resolvers/types.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "ee3376946efec9595fea8ac49e6a8fc6",
+    "semantic_hash": "ee3376946efec9595fea8ac49e6a8fc6"
+  },
+  "/home/user/gstack/scripts/resolvers/utility.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "7d4682742fedc8d3e59d0b12dc866af2",
+    "semantic_hash": "7d4682742fedc8d3e59d0b12dc866af2"
+  },
+  "/home/user/gstack/scripts/skill-check.ts": {
+    "mtime": 1784337557.664056,
+    "ast_hash": "b4128f9c7614b58e8ecd625e20a4d6e4",
+    "semantic_hash": "b4128f9c7614b58e8ecd625e20a4d6e4"
+  },
+  "/home/user/gstack/setup": {
+    "mtime": 1784337557.6678271,
+    "ast_hash": "3bc236e73ed65d366372de594cb6647b",
+    "semantic_hash": "3bc236e73ed65d366372de594cb6647b"
+  },
+  "/home/user/gstack/supabase/config.sh": {
+    "mtime": 1784337557.6743557,
+    "ast_hash": "660314e77c012cd28d03385af1fe8c8f",
+    "semantic_hash": "660314e77c012cd28d03385af1fe8c8f"
+  },
+  "/home/user/gstack/supabase/functions/community-pulse/index.ts": {
+    "mtime": 1784337557.6753917,
+    "ast_hash": "4b6e486e5b721e653d9e204d0c11a57b",
+    "semantic_hash": "4b6e486e5b721e653d9e204d0c11a57b"
+  },
+  "/home/user/gstack/supabase/functions/telemetry-ingest/index.ts": {
+    "mtime": 1784337557.6753917,
+    "ast_hash": "678639d4f157acdc2d704ecaf17f71f4",
+    "semantic_hash": "678639d4f157acdc2d704ecaf17f71f4"
+  },
+  "/home/user/gstack/supabase/functions/update-check/index.ts": {
+    "mtime": 1784337557.6753917,
+    "ast_hash": "b56e92cbab7f5936076e130e49fd3efd",
+    "semantic_hash": "b56e92cbab7f5936076e130e49fd3efd"
+  },
+  "/home/user/gstack/supabase/migrations/001_telemetry.sql": {
+    "mtime": 1784337557.6753917,
+    "ast_hash": "cffc9cd3c458f87a255c19f560033b32",
+    "semantic_hash": "cffc9cd3c458f87a255c19f560033b32"
+  },
+  "/home/user/gstack/supabase/migrations/002_tighten_rls.sql": {
+    "mtime": 1784337557.6767228,
+    "ast_hash": "ea4ffefe76b5377edf2333fe8dfdfb08",
+    "semantic_hash": "ea4ffefe76b5377edf2333fe8dfdfb08"
+  },
+  "/home/user/gstack/supabase/verify-rls.sh": {
+    "mtime": 1784337557.6767228,
+    "ast_hash": "a4aa6b8601b254ba3729de1a6f5a3fd1",
+    "semantic_hash": "a4aa6b8601b254ba3729de1a6f5a3fd1"
+  },
+  "/home/user/gstack/test/analytics.test.ts": {
+    "mtime": 1784337557.6767228,
+    "ast_hash": "22c59f4aaf2caa0a0f08c8acab46589c",
+    "semantic_hash": "22c59f4aaf2caa0a0f08c8acab46589c"
+  },
+  "/home/user/gstack/test/codex-e2e.test.ts": {
+    "mtime": 1784337557.6775372,
+    "ast_hash": "ce88c841890c8c28a8c2ee77e0c1277d",
+    "semantic_hash": "ce88c841890c8c28a8c2ee77e0c1277d"
+  },
+  "/home/user/gstack/test/fixtures/coverage-audit-fixture.ts": {
+    "mtime": 1784337557.6775372,
+    "ast_hash": "8ac7a516cf700053fe8abe75b41c6ae3",
+    "semantic_hash": "8ac7a516cf700053fe8abe75b41c6ae3"
+  },
+  "/home/user/gstack/test/fixtures/eval-baselines.json": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "c34de58b1e6ac804e2edc5d89684abc0",
+    "semantic_hash": "c34de58b1e6ac804e2edc5d89684abc0"
+  },
+  "/home/user/gstack/test/fixtures/qa-eval-checkout-ground-truth.json": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "83ba10580fb027c262ed1b64f8238d85",
+    "semantic_hash": "83ba10580fb027c262ed1b64f8238d85"
+  },
+  "/home/user/gstack/test/fixtures/qa-eval-ground-truth.json": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "d2c6414fa94195da669f88dfe649622c",
+    "semantic_hash": "d2c6414fa94195da669f88dfe649622c"
+  },
+  "/home/user/gstack/test/fixtures/qa-eval-spa-ground-truth.json": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "f3172b3299b8cfabb30d0b16e14415e4",
+    "semantic_hash": "f3172b3299b8cfabb30d0b16e14415e4"
+  },
+  "/home/user/gstack/test/fixtures/review-eval-enum-diff.rb": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "c1ba3e694b2e3f95a34c21b32d371003",
+    "semantic_hash": "c1ba3e694b2e3f95a34c21b32d371003"
+  },
+  "/home/user/gstack/test/fixtures/review-eval-enum.rb": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "d56c809d5c355674431f0fa29524a286",
+    "semantic_hash": "d56c809d5c355674431f0fa29524a286"
+  },
+  "/home/user/gstack/test/fixtures/review-eval-vuln.rb": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "8079475aa340a55f2131e8b7cff3807c",
+    "semantic_hash": "8079475aa340a55f2131e8b7cff3807c"
+  },
+  "/home/user/gstack/test/gemini-e2e.test.ts": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "1831d92c065b08faea8db66e0f052846",
+    "semantic_hash": "1831d92c065b08faea8db66e0f052846"
+  },
+  "/home/user/gstack/test/gen-skill-docs.test.ts": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "9aaa66b4009bb3e80e62d4c39e3e091e",
+    "semantic_hash": "9aaa66b4009bb3e80e62d4c39e3e091e"
+  },
+  "/home/user/gstack/test/global-discover.test.ts": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "5ddea2d347409a2a07c87f39c8fcc59e",
+    "semantic_hash": "5ddea2d347409a2a07c87f39c8fcc59e"
+  },
+  "/home/user/gstack/test/helpers/codex-session-runner.ts": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "d9b82502ea3479bc742432ac0961c995",
+    "semantic_hash": "d9b82502ea3479bc742432ac0961c995"
+  },
+  "/home/user/gstack/test/helpers/e2e-helpers.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "5b824c7125009e642a393070971ddcdd",
+    "semantic_hash": "5b824c7125009e642a393070971ddcdd"
+  },
+  "/home/user/gstack/test/helpers/eval-store.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "8e4ca2b2e4a53b7196ba76fc5807b19c",
+    "semantic_hash": "8e4ca2b2e4a53b7196ba76fc5807b19c"
+  },
+  "/home/user/gstack/test/helpers/eval-store.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "5054cec46a8f5ce663c4a1266c0c415b",
+    "semantic_hash": "5054cec46a8f5ce663c4a1266c0c415b"
+  },
+  "/home/user/gstack/test/helpers/gemini-session-runner.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "914c2a0430f535460e0c96ffbaf169ca",
+    "semantic_hash": "914c2a0430f535460e0c96ffbaf169ca"
+  },
+  "/home/user/gstack/test/helpers/gemini-session-runner.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "04ce5986485b2277ecedcaf85b17478a",
+    "semantic_hash": "04ce5986485b2277ecedcaf85b17478a"
+  },
+  "/home/user/gstack/test/helpers/llm-judge.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "95e5456aa2655df050abda7d3e85e56b",
+    "semantic_hash": "95e5456aa2655df050abda7d3e85e56b"
+  },
+  "/home/user/gstack/test/helpers/observability.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "a60fc692323d58fbaa1997520e913153",
+    "semantic_hash": "a60fc692323d58fbaa1997520e913153"
+  },
+  "/home/user/gstack/test/helpers/session-runner.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "8d33dbc697e32d61b895d2123a0e1f7e",
+    "semantic_hash": "8d33dbc697e32d61b895d2123a0e1f7e"
+  },
+  "/home/user/gstack/test/helpers/session-runner.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "399c3696d9ca8a1874903a1cb1a099d7",
+    "semantic_hash": "399c3696d9ca8a1874903a1cb1a099d7"
+  },
+  "/home/user/gstack/test/helpers/skill-parser.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "764a1ed77482e9d1b886bf6be5dd9bae",
+    "semantic_hash": "764a1ed77482e9d1b886bf6be5dd9bae"
+  },
+  "/home/user/gstack/test/helpers/touchfiles.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "dbcd223d2a6b8b9653196b51ac352177",
+    "semantic_hash": "dbcd223d2a6b8b9653196b51ac352177"
+  },
+  "/home/user/gstack/test/hook-scripts.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "d5fd7f6ebd970a25afd1da4b3b3eecaf",
+    "semantic_hash": "d5fd7f6ebd970a25afd1da4b3b3eecaf"
+  },
+  "/home/user/gstack/test/ollama-config.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "8c6ce5a78c0c0521088885aaf0d6441a",
+    "semantic_hash": "8c6ce5a78c0c0521088885aaf0d6441a"
+  },
+  "/home/user/gstack/test/skill-e2e-bws.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "029b3e4eebb96d59fc5819ba4642f01a",
+    "semantic_hash": "029b3e4eebb96d59fc5819ba4642f01a"
+  },
+  "/home/user/gstack/test/skill-e2e-cso.test.ts": {
+    "mtime": 1784337557.6816459,
+    "ast_hash": "80d695c03d5b1b7b97ba6e830fd7a063",
+    "semantic_hash": "80d695c03d5b1b7b97ba6e830fd7a063"
+  },
+  "/home/user/gstack/test/skill-e2e-deploy.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "58575f9b1ee0cb56a8cc1826967c8f01",
+    "semantic_hash": "58575f9b1ee0cb56a8cc1826967c8f01"
+  },
+  "/home/user/gstack/test/skill-e2e-design.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "8b633f65a0c660dd51a2bf0f67e93dee",
+    "semantic_hash": "8b633f65a0c660dd51a2bf0f67e93dee"
+  },
+  "/home/user/gstack/test/skill-e2e-plan.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "8ee72534b9e0b5f9c9fa713f44a26940",
+    "semantic_hash": "8ee72534b9e0b5f9c9fa713f44a26940"
+  },
+  "/home/user/gstack/test/skill-e2e-qa-bugs.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "e7373f65ec170251fc25d34cbf187598",
+    "semantic_hash": "e7373f65ec170251fc25d34cbf187598"
+  },
+  "/home/user/gstack/test/skill-e2e-qa-workflow.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "c820cb35331f6a4eb51b07fbfdad7f11",
+    "semantic_hash": "c820cb35331f6a4eb51b07fbfdad7f11"
+  },
+  "/home/user/gstack/test/skill-e2e-review.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "31f34af5c4f1a859e69d02af9af7d264",
+    "semantic_hash": "31f34af5c4f1a859e69d02af9af7d264"
+  },
+  "/home/user/gstack/test/skill-e2e-workflow.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "c5e395bc995676f0337898c4643751f9",
+    "semantic_hash": "c5e395bc995676f0337898c4643751f9"
+  },
+  "/home/user/gstack/test/skill-e2e.test.ts": {
+    "mtime": 1784337557.683827,
+    "ast_hash": "b9e96ad9e89ece435ce13a20215d1e21",
+    "semantic_hash": "b9e96ad9e89ece435ce13a20215d1e21"
+  },
+  "/home/user/gstack/test/skill-llm-eval.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "2a981678e59717cb64326f7ae8a0e3a3",
+    "semantic_hash": "2a981678e59717cb64326f7ae8a0e3a3"
+  },
+  "/home/user/gstack/test/skill-parser.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "b4b1d6b8ad4d26dd387372b9bc0ad823",
+    "semantic_hash": "b4b1d6b8ad4d26dd387372b9bc0ad823"
+  },
+  "/home/user/gstack/test/skill-routing-e2e.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "573243e83573c3fde291e72801773574",
+    "semantic_hash": "573243e83573c3fde291e72801773574"
+  },
+  "/home/user/gstack/test/skill-validation.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "04b91a1a596d2f6a8ac298fc3ad4f525",
+    "semantic_hash": "04b91a1a596d2f6a8ac298fc3ad4f525"
+  },
+  "/home/user/gstack/test/telemetry.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "bbd1b3b24997cbbb03c3189b270b5083",
+    "semantic_hash": "bbd1b3b24997cbbb03c3189b270b5083"
+  },
+  "/home/user/gstack/test/touchfiles.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "8099cb25cd137aa8f6df3469583adbd5",
+    "semantic_hash": "8099cb25cd137aa8f6df3469583adbd5"
+  },
+  "/home/user/gstack/test/worktree.test.ts": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "59aa875fca2dcba732debad4d6624549",
+    "semantic_hash": "59aa875fca2dcba732debad4d6624549"
+  },
+  "/home/user/gstack/.github/actionlint.yaml": {
+    "mtime": 1784337556.7898424,
+    "ast_hash": "f1b67ed3ccf2f18168bda73ac239dc53",
+    "semantic_hash": "f1b67ed3ccf2f18168bda73ac239dc53"
+  },
+  "/home/user/gstack/.github/workflows/actionlint.yml": {
+    "mtime": 1784337556.7911856,
+    "ast_hash": "5bdf429e61e4edf8529d6d912952c8de",
+    "semantic_hash": "5bdf429e61e4edf8529d6d912952c8de"
+  },
+  "/home/user/gstack/.github/workflows/ci-image.yml": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "43fb083c5e4764e0dc06bce8750f357e",
+    "semantic_hash": "43fb083c5e4764e0dc06bce8750f357e"
+  },
+  "/home/user/gstack/.github/workflows/evals-periodic.yml": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "af61eb784478dd34d9ca32f2ce015e8f",
+    "semantic_hash": "af61eb784478dd34d9ca32f2ce015e8f"
+  },
+  "/home/user/gstack/.github/workflows/evals.yml": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "dee33c41a3fab0b0e87dbf4b73814294",
+    "semantic_hash": "dee33c41a3fab0b0e87dbf4b73814294"
+  },
+  "/home/user/gstack/.github/workflows/skill-docs.yml": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "8f0fec97b5164252d3ae810f51b008ac",
+    "semantic_hash": "8f0fec97b5164252d3ae810f51b008ac"
+  },
+  "/home/user/gstack/AGENTS.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "5ec7b52dec8251f082ba91f1a13464bb",
+    "semantic_hash": "5ec7b52dec8251f082ba91f1a13464bb"
+  },
+  "/home/user/gstack/ARCHITECTURE.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "8c4e567592af3b1aa3fc9bfe94430587",
+    "semantic_hash": "8c4e567592af3b1aa3fc9bfe94430587"
+  },
+  "/home/user/gstack/BROWSER.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "5a535cc77a7a88939db0cd5cbabb16c6",
+    "semantic_hash": "5a535cc77a7a88939db0cd5cbabb16c6"
+  },
+  "/home/user/gstack/CHANGELOG.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "6c88c2e7e49ca782500a0b4cebc72dd4",
+    "semantic_hash": "6c88c2e7e49ca782500a0b4cebc72dd4"
+  },
+  "/home/user/gstack/CLAUDE.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "934ceee787c8984e4713f149924852e5",
+    "semantic_hash": "934ceee787c8984e4713f149924852e5"
+  },
+  "/home/user/gstack/CONTRIBUTING.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "1dfd3e64b95f2a640e116c043467277c",
+    "semantic_hash": "1dfd3e64b95f2a640e116c043467277c"
+  },
+  "/home/user/gstack/DESIGN.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "bb22a8a32932196cbbd9cf2c1a74c9ea",
+    "semantic_hash": "bb22a8a32932196cbbd9cf2c1a74c9ea"
+  },
+  "/home/user/gstack/ETHOS.md": {
+    "mtime": 1784337556.792384,
+    "ast_hash": "00d6810920a88070e9fb5cfb057f3cb4",
+    "semantic_hash": "00d6810920a88070e9fb5cfb057f3cb4"
+  },
+  "/home/user/gstack/README.md": {
+    "mtime": 1784337556.795827,
+    "ast_hash": "28f03c09a8bff6ff853a2621b97ae5da",
+    "semantic_hash": "28f03c09a8bff6ff853a2621b97ae5da"
+  },
+  "/home/user/gstack/SKILL.md": {
+    "mtime": 1784337556.795827,
+    "ast_hash": "e9e119113610dd796a615db4d681dcd1",
+    "semantic_hash": "e9e119113610dd796a615db4d681dcd1"
+  },
+  "/home/user/gstack/TODOS.md": {
+    "mtime": 1784337556.795827,
+    "ast_hash": "376b3947e0436ac7f2b7fd06c96979e4",
+    "semantic_hash": "376b3947e0436ac7f2b7fd06c96979e4"
+  },
+  "/home/user/gstack/actionlint.yaml": {
+    "mtime": 1784337556.795827,
+    "ast_hash": "1ed7420ba679e35cfae69b517b6311cc",
+    "semantic_hash": "1ed7420ba679e35cfae69b517b6311cc"
+  },
+  "/home/user/gstack/agents/openai.yaml": {
+    "mtime": 1784337556.795827,
+    "ast_hash": "aedf83a7201d4b3f3092231f7a4c0bb0",
+    "semantic_hash": "aedf83a7201d4b3f3092231f7a4c0bb0"
+  },
+  "/home/user/gstack/autoplan/SKILL.md": {
+    "mtime": 1784337556.7998269,
+    "ast_hash": "5027a97dead71c394f5eaa16f58771ad",
+    "semantic_hash": "5027a97dead71c394f5eaa16f58771ad"
+  },
+  "/home/user/gstack/benchmark/SKILL.md": {
+    "mtime": 1784337556.7998269,
+    "ast_hash": "ec2f1e0ae6e2d4c0506fef770c23dbe9",
+    "semantic_hash": "ec2f1e0ae6e2d4c0506fef770c23dbe9"
+  },
+  "/home/user/gstack/browse/SKILL.md": {
+    "mtime": 1784337557.603827,
+    "ast_hash": "4458cb78df6156479b26a7ee8339f43b",
+    "semantic_hash": "4458cb78df6156479b26a7ee8339f43b"
+  },
+  "/home/user/gstack/browse/test/fixtures/basic.html": {
+    "mtime": 1784337557.6159313,
+    "ast_hash": "93df52a2a784136417bbba91ece1d553",
+    "semantic_hash": "93df52a2a784136417bbba91ece1d553"
+  },
+  "/home/user/gstack/browse/test/fixtures/cursor-interactive.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "74eab5d12143ab5d477d617354c523cc",
+    "semantic_hash": "74eab5d12143ab5d477d617354c523cc"
+  },
+  "/home/user/gstack/browse/test/fixtures/dialog.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "a6a52209ad8a3b8ddf6669a94bc7e349",
+    "semantic_hash": "a6a52209ad8a3b8ddf6669a94bc7e349"
+  },
+  "/home/user/gstack/browse/test/fixtures/empty.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "12cbca0ca94ff3e4cf977c00aaec6ee6",
+    "semantic_hash": "12cbca0ca94ff3e4cf977c00aaec6ee6"
+  },
+  "/home/user/gstack/browse/test/fixtures/forms.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "bf4470b5224da94398dd49cfa798bf37",
+    "semantic_hash": "bf4470b5224da94398dd49cfa798bf37"
+  },
+  "/home/user/gstack/browse/test/fixtures/iframe.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "4fd10491c86d1f6160dca9e37c433f94",
+    "semantic_hash": "4fd10491c86d1f6160dca9e37c433f94"
+  },
+  "/home/user/gstack/browse/test/fixtures/network-idle.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "30ec6cc101a2ddacdfb2de13b8c8f5e4",
+    "semantic_hash": "30ec6cc101a2ddacdfb2de13b8c8f5e4"
+  },
+  "/home/user/gstack/browse/test/fixtures/qa-eval-checkout.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "0046c59636ccf46b380275de66e03eb8",
+    "semantic_hash": "0046c59636ccf46b380275de66e03eb8"
+  },
+  "/home/user/gstack/browse/test/fixtures/qa-eval-spa.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "c705a3603d87b028170421912d0c601b",
+    "semantic_hash": "c705a3603d87b028170421912d0c601b"
+  },
+  "/home/user/gstack/browse/test/fixtures/qa-eval.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "a302aaa3cf5333b8be2e3449efb1e3a1",
+    "semantic_hash": "a302aaa3cf5333b8be2e3449efb1e3a1"
+  },
+  "/home/user/gstack/browse/test/fixtures/responsive.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "7355e335e1ff7410e9a0acc0a2a08414",
+    "semantic_hash": "7355e335e1ff7410e9a0acc0a2a08414"
+  },
+  "/home/user/gstack/browse/test/fixtures/snapshot.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "276d11c3f4103b483a7d37f0a36504ca",
+    "semantic_hash": "276d11c3f4103b483a7d37f0a36504ca"
+  },
+  "/home/user/gstack/browse/test/fixtures/spa.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "bb20f42959efec29b71f110d24815a1d",
+    "semantic_hash": "bb20f42959efec29b71f110d24815a1d"
+  },
+  "/home/user/gstack/browse/test/fixtures/states.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "8ad9392abb62fbe7cf65eaa2efd81e77",
+    "semantic_hash": "8ad9392abb62fbe7cf65eaa2efd81e77"
+  },
+  "/home/user/gstack/browse/test/fixtures/upload.html": {
+    "mtime": 1784337557.6189299,
+    "ast_hash": "addf9b2505cb51e935abb5b3ececd475",
+    "semantic_hash": "addf9b2505cb51e935abb5b3ececd475"
+  },
+  "/home/user/gstack/canary/SKILL.md": {
+    "mtime": 1784337557.619827,
+    "ast_hash": "5bcadaa006e79fecf497f7f5de573572",
+    "semantic_hash": "5bcadaa006e79fecf497f7f5de573572"
+  },
+  "/home/user/gstack/careful/SKILL.md": {
+    "mtime": 1784337557.6241593,
+    "ast_hash": "91cb71299f924b9feec2051bd308a03b",
+    "semantic_hash": "91cb71299f924b9feec2051bd308a03b"
+  },
+  "/home/user/gstack/codex/SKILL.md": {
+    "mtime": 1784337557.6251292,
+    "ast_hash": "93133ab3bee4e1f1c07381d88d50da68",
+    "semantic_hash": "93133ab3bee4e1f1c07381d88d50da68"
+  },
+  "/home/user/gstack/connect-chrome/SKILL.md": {
+    "mtime": 1784337557.6268766,
+    "ast_hash": "1b2e3a8b7c68084074fdca270e7d6c05",
+    "semantic_hash": "1b2e3a8b7c68084074fdca270e7d6c05"
+  },
+  "/home/user/gstack/cso/ACKNOWLEDGEMENTS.md": {
+    "mtime": 1784337557.6278443,
+    "ast_hash": "7c031c6321991bf55acd8006566d04cc",
+    "semantic_hash": "7c031c6321991bf55acd8006566d04cc"
+  },
+  "/home/user/gstack/cso/SKILL.md": {
+    "mtime": 1784337557.6283505,
+    "ast_hash": "ad5cf4206ee917fc128e6e7b33cb678a",
+    "semantic_hash": "ad5cf4206ee917fc128e6e7b33cb678a"
+  },
+  "/home/user/gstack/design-consultation/SKILL.md": {
+    "mtime": 1784337557.6283505,
+    "ast_hash": "dc2f0e3b001b0b9b8a584231adb5f621",
+    "semantic_hash": "dc2f0e3b001b0b9b8a584231adb5f621"
+  },
+  "/home/user/gstack/design-review/SKILL.md": {
+    "mtime": 1784337557.630348,
+    "ast_hash": "e6a0ff62860ae83daf6dda96f4cf0c76",
+    "semantic_hash": "e6a0ff62860ae83daf6dda96f4cf0c76"
+  },
+  "/home/user/gstack/docs/designs/CHROME_VS_CHROMIUM_EXPLORATION.md": {
+    "mtime": 1784337557.6326604,
+    "ast_hash": "50c72d70c2aeb970a90e1bb00bd237a7",
+    "semantic_hash": "50c72d70c2aeb970a90e1bb00bd237a7"
+  },
+  "/home/user/gstack/docs/designs/CONDUCTOR_CHROME_SIDEBAR_INTEGRATION.md": {
+    "mtime": 1784337557.6329143,
+    "ast_hash": "b15aa2eefade949f2a1bbc4239fda218",
+    "semantic_hash": "b15aa2eefade949f2a1bbc4239fda218"
+  },
+  "/home/user/gstack/docs/designs/CONDUCTOR_SESSION_API.md": {
+    "mtime": 1784337557.6329143,
+    "ast_hash": "12f44540748ec543a01f176b3166a2b9",
+    "semantic_hash": "12f44540748ec543a01f176b3166a2b9"
+  },
+  "/home/user/gstack/docs/skills.md": {
+    "mtime": 1784337557.6346312,
+    "ast_hash": "102fb058e02f181ca0f70fc9ed86e311",
+    "semantic_hash": "102fb058e02f181ca0f70fc9ed86e311"
+  },
+  "/home/user/gstack/document-release/SKILL.md": {
+    "mtime": 1784337557.6346312,
+    "ast_hash": "4e2c0bd424fea25f3eb40633bbabbdd4",
+    "semantic_hash": "4e2c0bd424fea25f3eb40633bbabbdd4"
+  },
+  "/home/user/gstack/extension/popup.html": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "629680f6a86018ca9d337f2c1267309d",
+    "semantic_hash": "629680f6a86018ca9d337f2c1267309d"
+  },
+  "/home/user/gstack/extension/sidepanel.html": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "47376c0b1c1af0c5665fe90edf714b00",
+    "semantic_hash": "47376c0b1c1af0c5665fe90edf714b00"
+  },
+  "/home/user/gstack/freeze/SKILL.md": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "c672b76aa82fdbe8c01cede7870ef0bb",
+    "semantic_hash": "c672b76aa82fdbe8c01cede7870ef0bb"
+  },
+  "/home/user/gstack/gstack-upgrade/SKILL.md": {
+    "mtime": 1784337557.6400995,
+    "ast_hash": "2a9b521c2754ecf573d46a58d9747adb",
+    "semantic_hash": "2a9b521c2754ecf573d46a58d9747adb"
+  },
+  "/home/user/gstack/guard/SKILL.md": {
+    "mtime": 1784337557.6409643,
+    "ast_hash": "46834d57687c42105a9d56267c185344",
+    "semantic_hash": "46834d57687c42105a9d56267c185344"
+  },
+  "/home/user/gstack/investigate/SKILL.md": {
+    "mtime": 1784337557.641609,
+    "ast_hash": "17b8a2c627f944465cfbfe3fe4899698",
+    "semantic_hash": "17b8a2c627f944465cfbfe3fe4899698"
+  },
+  "/home/user/gstack/land-and-deploy/SKILL.md": {
+    "mtime": 1784337557.6427805,
+    "ast_hash": "b1267811ceb83f4173f35e395c77f24d",
+    "semantic_hash": "b1267811ceb83f4173f35e395c77f24d"
+  },
+  "/home/user/gstack/office-hours/SKILL.md": {
+    "mtime": 1784337557.6454005,
+    "ast_hash": "30ba7f9e889bf892abda76743e669168",
+    "semantic_hash": "30ba7f9e889bf892abda76743e669168"
+  },
+  "/home/user/gstack/plan-ceo-review/SKILL.md": {
+    "mtime": 1784337557.6468754,
+    "ast_hash": "dee4c45fc3251faabcfd6ffee94d2be0",
+    "semantic_hash": "dee4c45fc3251faabcfd6ffee94d2be0"
+  },
+  "/home/user/gstack/plan-design-review/SKILL.md": {
+    "mtime": 1784337557.6496296,
+    "ast_hash": "d43abfd3c88dd80f490f203bf7eb8d4d",
+    "semantic_hash": "d43abfd3c88dd80f490f203bf7eb8d4d"
+  },
+  "/home/user/gstack/plan-eng-review/SKILL.md": {
+    "mtime": 1784337557.6516247,
+    "ast_hash": "e21ff8471691958bb0df5c3ed10d3fdb",
+    "semantic_hash": "e21ff8471691958bb0df5c3ed10d3fdb"
+  },
+  "/home/user/gstack/qa-only/SKILL.md": {
+    "mtime": 1784337557.6528165,
+    "ast_hash": "10b48c3500e049191bbe566ca07f356d",
+    "semantic_hash": "10b48c3500e049191bbe566ca07f356d"
+  },
+  "/home/user/gstack/qa/SKILL.md": {
+    "mtime": 1784337557.6541786,
+    "ast_hash": "41cd376d75078eedc05f126013d0616d",
+    "semantic_hash": "41cd376d75078eedc05f126013d0616d"
+  },
+  "/home/user/gstack/qa/references/issue-taxonomy.md": {
+    "mtime": 1784337557.6554437,
+    "ast_hash": "36e0f0c5656d58aa4d7b4360f01c9159",
+    "semantic_hash": "36e0f0c5656d58aa4d7b4360f01c9159"
+  },
+  "/home/user/gstack/qa/templates/qa-report-template.md": {
+    "mtime": 1784337557.6554437,
+    "ast_hash": "b7fd0bc6a151bd0ef56f52bab6548e88",
+    "semantic_hash": "b7fd0bc6a151bd0ef56f52bab6548e88"
+  },
+  "/home/user/gstack/retro/SKILL.md": {
+    "mtime": 1784337557.6554437,
+    "ast_hash": "a67854daba0cb307806a532239281de1",
+    "semantic_hash": "a67854daba0cb307806a532239281de1"
+  },
+  "/home/user/gstack/review/SKILL.md": {
+    "mtime": 1784337557.6573963,
+    "ast_hash": "45c4bdc06dbe98d0e09e7031878aff3a",
+    "semantic_hash": "45c4bdc06dbe98d0e09e7031878aff3a"
+  },
+  "/home/user/gstack/review/TODOS-format.md": {
+    "mtime": 1784337557.659183,
+    "ast_hash": "cc8acec44b55551954b4a4e42022bf4a",
+    "semantic_hash": "cc8acec44b55551954b4a4e42022bf4a"
+  },
+  "/home/user/gstack/review/checklist.md": {
+    "mtime": 1784337557.659183,
+    "ast_hash": "629e382dc67ac42f612baddf3714efc6",
+    "semantic_hash": "629e382dc67ac42f612baddf3714efc6"
+  },
+  "/home/user/gstack/review/design-checklist.md": {
+    "mtime": 1784337557.659183,
+    "ast_hash": "15aa2b151d754a18f1b98749d89d33e7",
+    "semantic_hash": "15aa2b151d754a18f1b98749d89d33e7"
+  },
+  "/home/user/gstack/review/greptile-triage.md": {
+    "mtime": 1784337557.659183,
+    "ast_hash": "80fa911bbeb0151c5b76627f79653468",
+    "semantic_hash": "80fa911bbeb0151c5b76627f79653468"
+  },
+  "/home/user/gstack/setup-browser-cookies/SKILL.md": {
+    "mtime": 1784337557.6678271,
+    "ast_hash": "587fb09d34f9682d9a92285c5be9660a",
+    "semantic_hash": "587fb09d34f9682d9a92285c5be9660a"
+  },
+  "/home/user/gstack/setup-deploy/SKILL.md": {
+    "mtime": 1784337557.6714592,
+    "ast_hash": "e5eb6c427e3f32820bdd09869d93f2fb",
+    "semantic_hash": "e5eb6c427e3f32820bdd09869d93f2fb"
+  },
+  "/home/user/gstack/ship/SKILL.md": {
+    "mtime": 1784337557.6724005,
+    "ast_hash": "d6ce481d7a82fbc614a7ade55c54087a",
+    "semantic_hash": "d6ce481d7a82fbc614a7ade55c54087a"
+  },
+  "/home/user/gstack/test/fixtures/review-eval-design-slop.html": {
+    "mtime": 1784337557.6783237,
+    "ast_hash": "b1325f39c787078601d7ec4a1ca646f4",
+    "semantic_hash": "b1325f39c787078601d7ec4a1ca646f4"
+  },
+  "/home/user/gstack/unfreeze/SKILL.md": {
+    "mtime": 1784337557.687827,
+    "ast_hash": "52de8e52ff80b2fffa8643ef522bd963",
+    "semantic_hash": "52de8e52ff80b2fffa8643ef522bd963"
+  },
+  "/home/user/gstack/docs/images/github-2013.png": {
+    "mtime": 1784337557.6329143,
+    "ast_hash": "6311fa09c0684a8e88e73233a9dbe078",
+    "semantic_hash": "6311fa09c0684a8e88e73233a9dbe078"
+  },
+  "/home/user/gstack/docs/images/github-2026.png": {
+    "mtime": 1784337557.6346312,
+    "ast_hash": "57705d5907ef04acba156ab528892421",
+    "semantic_hash": "57705d5907ef04acba156ab528892421"
+  },
+  "/home/user/gstack/extension/icons/icon-128.png": {
+    "mtime": 1784337557.6375911,
+    "ast_hash": "e67c90d0932c4a93c399638d85955335",
+    "semantic_hash": "e67c90d0932c4a93c399638d85955335"
+  },
+  "/home/user/gstack/extension/icons/icon-16.png": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "0205f2a945dec70d724622a1bd80d70b",
+    "semantic_hash": "0205f2a945dec70d724622a1bd80d70b"
+  },
+  "/home/user/gstack/extension/icons/icon-48.png": {
+    "mtime": 1784337557.6381395,
+    "ast_hash": "fbcbbf8ee9db22da05a00368cd69b6b0",
+    "semantic_hash": "fbcbbf8ee9db22da05a00368cd69b6b0"
+  }
+}
