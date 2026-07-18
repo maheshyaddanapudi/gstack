@@ -178,15 +178,14 @@ before going live (especially if the user is actively using gstack in other wind
 ## Compiled binaries — NEVER commit browse/dist/
 
 The `browse/dist/` directory contains compiled Bun binaries (`browse`, `find-browse`,
-~58MB each). These are Mach-O arm64 only — they do NOT work on Linux, Windows, or
-Intel Macs. The `./setup` script already builds from source for every platform, so
-the checked-in binaries are redundant. They are tracked by git due to a historical
-mistake and should eventually be removed with `git rm --cached`.
+~58MB each) built for the local platform only — a binary built on one machine does
+NOT work on others. The `./setup` script builds from source for every platform, so
+committed binaries would be redundant. They were tracked by git due to a historical
+mistake but have since been removed from tracking; `browse/dist/` is gitignored.
 
-**NEVER stage or commit these files.** They show up as modified in `git status`
-because they're tracked despite `.gitignore` — ignore them. When staging files,
-always use specific filenames (`git add file1 file2`) — never `git add .` or
-`git add -A`, which will accidentally include the binaries.
+**NEVER stage or commit these files.** When staging files, always use specific
+filenames (`git add file1 file2`) — never `git add .` or `git add -A`, which
+could accidentally include build artifacts.
 
 ## Commit style
 
