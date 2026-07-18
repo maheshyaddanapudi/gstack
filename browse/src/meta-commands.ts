@@ -97,14 +97,16 @@ export async function handleMetaCommand(
     }
 
     case 'stop': {
-      await shutdown();
+      // Defer shutdown so the HTTP response reaches the client before the
+      // process exits — shutdown() ends in process.exit(0).
+      setTimeout(() => { void shutdown(); }, 100);
       return 'Server stopped';
     }
 
     case 'restart': {
       // Signal that we want a restart — the CLI will detect exit and restart
       console.log('[browse] Restart requested. Exiting for CLI to restart.');
-      await shutdown();
+      setTimeout(() => { void shutdown(); }, 100);
       return 'Restarting...';
     }
 

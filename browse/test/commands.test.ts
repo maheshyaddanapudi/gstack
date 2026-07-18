@@ -725,6 +725,73 @@ describe('CLI lifecycle', () => {
     expect(result.stdout).toContain('Status: healthy');
     expect(result.stderr).toContain('Starting server');
   }, 20000);
+
+  const runCli = (args: string[], stateFile: string) => {
+    const cliPath = path.resolve(__dirname, '../src/cli.ts');
+    const cliEnv: Record<string, string> = {};
+    for (const [k, v] of Object.entries(process.env)) {
+      if (v !== undefined) cliEnv[k] = v;
+    }
+    cliEnv.BROWSE_STATE_FILE = stateFile;
+    return new Promise<{ code: number; stdout: string; stderr: string }>((resolve) => {
+      const proc = spawn('bun', ['run', cliPath, ...args], {
+        timeout: 15000,
+        env: cliEnv,
+      });
+      let stdout = '';
+      let stderr = '';
+      proc.stdout.on('data', (d) => stdout += d.toString());
+      proc.stderr.on('data', (d) => stderr += d.toString());
+      proc.on('close', (code) => resolve({ code: code ?? 1, stdout, stderr }));
+    });
+  };
+
+  test('stop with no server exits 0 without starting one', async () => {
+    const stateFile = `/tmp/browse-test-stop-none-${Date.now()}.json`;
+
+    const result = await runCli(['stop'], stateFile);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain('No server running.');
+    expect(result.stderr).not.toContain('Starting server');
+  }, 20000);
+
+  test('stop with dead-pid state file exits 0 without starting a server', async () => {
+    const stateFile = `/tmp/browse-test-stop-dead-${Date.now()}.json`;
+    fs.writeFileSync(stateFile, JSON.stringify({
+      port: 1,
+      token: 'fake',
+      pid: 999999,
+    }));
+
+    const result = await runCli(['stop'], stateFile);
+    if (fs.existsSync(stateFile)) fs.unlinkSync(stateFile);
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain('No server running.');
+    expect(result.stderr).not.toContain('Starting server');
+  }, 20000);
+
+  test('stop against a running server reports success and exits 0', async () => {
+    const stateFile = `/tmp/browse-test-stop-live-${Date.now()}.json`;
+
+    // Boot a server via status, then stop it — the old stop path exited 1
+    // because the server died before its HTTP response was flushed.
+    const statusResult = await runCli(['status'], stateFile);
+    expect(statusResult.code).toBe(0);
+
+    const stopResult = await runCli(['stop'], stateFile);
+
+    // Cleanup in case stop failed to take the server down
+    if (fs.existsSync(stateFile)) {
+      const pid = JSON.parse(fs.readFileSync(stateFile, 'utf-8')).pid;
+      try { process.kill(pid, 'SIGTERM'); } catch {}
+      try { fs.unlinkSync(stateFile); } catch {}
+    }
+
+    expect(stopResult.code).toBe(0);
+    expect(stopResult.stdout).toContain('Server stopped');
+  }, 40000);
 });
 
 // ─── Buffer bounds ──────────────────────────────────────────────

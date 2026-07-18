@@ -419,8 +419,18 @@ async function sendCommand(state: ServerState, command: string, args: string[], 
       console.error('[browse] Command timed out after 30s');
       process.exit(1);
     }
-    // Connection error — server may have crashed
-    if (err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET' || err.message?.includes('fetch failed')) {
+    // Connection error — server may have crashed. Bun's fetch reports
+    // 'ConnectionRefused'/'Unable to connect'; Node reports ECONNREFUSED/
+    // ECONNRESET/'fetch failed'. Match both runtimes.
+    if (err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET' ||
+        err.code === 'ConnectionRefused' || err.code === 'ConnectionClosed' ||
+        err.message?.includes('fetch failed') || err.message?.includes('Unable to connect')) {
+      // A dropped connection while stopping means the server exited — success,
+      // not a crash. Restarting it just to re-deliver 'stop' would be absurd.
+      if (command === 'stop') {
+        console.log('Server stopped');
+        process.exit(0);
+      }
       if (retries >= 1) throw new Error('[browse] Server crashed twice in a row — aborting');
       console.error('[browse] Server connection lost. Restarting...');
       // Kill the old server to avoid orphaned chromium processes
@@ -572,6 +582,18 @@ Refs:           After 'snapshot', use @e1, @e2... as selectors:
       process.exit(1);
     }
     process.exit(0);
+  }
+
+  // ─── Stop with no server (pre-server command) ───────────────
+  // stop must short-circuit BEFORE ensureServer() — otherwise a stop with
+  // no server running would pointlessly start one just to shut it down.
+  if (command === 'stop') {
+    const existingState = readState();
+    if (!existingState || !isProcessAlive(existingState.pid)) {
+      try { fs.unlinkSync(config.stateFile); } catch {}
+      console.log('No server running.');
+      process.exit(0);
+    }
   }
 
   // ─── Headed Disconnect (pre-server command) ─────────────────
