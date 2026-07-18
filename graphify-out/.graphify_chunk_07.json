@@ -1,0 +1,114 @@
+{
+  "nodes": [
+    {
+      "id": "icon_128_extension_icon",
+      "label": "Extension icon 128px: orange letter G on dark rounded square",
+      "file_type": "image",
+      "source_file": "extension/icons/icon-128.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "icon_128_g_lettermark",
+      "label": "G lettermark (gstack brand mark, amber/orange #f5a623-like on near-black)",
+      "file_type": "image",
+      "source_file": "extension/icons/icon-128.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "icon_128_gstack_browse_extension",
+      "label": "gstack browse Chrome extension (MV3: side panel activity feed + @ref overlays)",
+      "file_type": "image",
+      "source_file": "extension/manifest.json",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "icon_128_extension_manifest",
+      "label": "extension/manifest.json (declares icon-16/48/128 for action and app icons)",
+      "file_type": "image",
+      "source_file": "extension/manifest.json",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "icon_128_browse_cli",
+      "label": "browse headless browser CLI (browse/src, Playwright) the extension surfaces",
+      "file_type": "image",
+      "source_file": "browse/src/commands.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "icon_128_extension_icon",
+      "target": "icon_128_g_lettermark",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "extension/icons/icon-128.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "icon_128_extension_manifest",
+      "target": "icon_128_extension_icon",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "extension/manifest.json",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "icon_128_extension_icon",
+      "target": "icon_128_gstack_browse_extension",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "extension/manifest.json",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "icon_128_g_lettermark",
+      "target": "icon_128_gstack_browse_extension",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "extension/icons/icon-128.png",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "icon_128_gstack_browse_extension",
+      "target": "icon_128_browse_cli",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "extension/manifest.json",
+      "source_location": null,
+      "weight": 0.85
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
