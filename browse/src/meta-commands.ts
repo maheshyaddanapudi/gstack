@@ -78,6 +78,29 @@ export async function handleMetaCommand(
       return `Closed tab${id ? ` ${id}` : ''}`;
     }
 
+    // ─── Sessions ──────────────────────────────────────
+    case 'sessions': {
+      return bm.listSessions().map(s =>
+        `${s.active ? '→ ' : '  '}${s.name} (${s.tabs} tab${s.tabs === 1 ? '' : 's'})`
+      ).join('\n');
+    }
+
+    case 'session': {
+      const name = args[0];
+      if (!name) throw new Error('Usage: browse session <name>');
+      const wasActive = bm.getActiveSessionName() === name;
+      const created = await bm.switchSession(name);
+      if (created) return `Created session '${name}' (isolated cookies/storage)`;
+      return wasActive ? `Already on session '${name}'` : `Switched to session '${name}'`;
+    }
+
+    case 'session-close': {
+      const name = args[0];
+      if (!name) throw new Error('Usage: browse session-close <name>');
+      const nowActive = await bm.closeSession(name);
+      return `Closed session '${name}'${nowActive ? ` — now on '${nowActive}'` : ''}`;
+    }
+
     // ─── Server Control ────────────────────────────────
     case 'status': {
       const page = bm.getPage();

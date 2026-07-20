@@ -26,6 +26,7 @@ export const WRITE_COMMANDS = new Set([
 
 export const META_COMMANDS = new Set([
   'tabs', 'tab', 'newtab', 'closetab',
+  'sessions', 'session', 'session-close',
   'status', 'stop', 'restart',
   'screenshot', 'pdf', 'responsive',
   'chain', 'diff',
@@ -93,6 +94,10 @@ export const COMMAND_DESCRIPTIONS: Record<string, { category: string; descriptio
   'tab':     { category: 'Tabs', description: 'Switch to tab', usage: 'tab <id>' },
   'newtab':  { category: 'Tabs', description: 'Open new tab', usage: 'newtab [url]' },
   'closetab':{ category: 'Tabs', description: 'Close tab', usage: 'closetab [id]' },
+  // Sessions
+  'sessions': { category: 'Sessions', description: 'List browser sessions (isolated cookies/storage per session)' },
+  'session':  { category: 'Sessions', description: 'Switch to named session, creating an isolated browser context (own cookies/storage/history) if new. Useful for testing multiple user roles in parallel', usage: 'session <name>' },
+  'session-close': { category: 'Sessions', description: 'Close a session and its browser context', usage: 'session-close <name>' },
   // Server
   'status':  { category: 'Server', description: 'Health check' },
   'stop':    { category: 'Server', description: 'Shutdown server' },

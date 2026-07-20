@@ -837,6 +837,76 @@ describe('CLI lifecycle', () => {
   }, 40000);
 });
 
+// ─── Sessions ───────────────────────────────────────────────────
+
+describe('Sessions', () => {
+  test('sessions starts with only default active', async () => {
+    const list = bm.listSessions();
+    expect(list.length).toBe(1);
+    expect(list[0].name).toBe('default');
+    expect(list[0].active).toBe(true);
+  });
+
+  test('session <name> creates an isolated context — storage does not leak', async () => {
+    // Plant state in the default session
+    await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+    await bm.getPage().evaluate(() => localStorage.setItem('who', 'default-user'));
+
+    // New session: same origin, fresh context — must not see default's storage
+    const created = await bm.switchSession('alice');
+    expect(created).toBe(true);
+    expect(bm.getActiveSessionName()).toBe('alice');
+    await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+    const aliceSees = await bm.getPage().evaluate(() => localStorage.getItem('who'));
+    expect(aliceSees).toBeNull();
+
+    // Alice writes her own state
+    await bm.getPage().evaluate(() => localStorage.setItem('who', 'alice-user'));
+
+    // Switching back restores default's context, tabs, and storage
+    const createdAgain = await bm.switchSession('default');
+    expect(createdAgain).toBe(false);
+    const defaultSees = await bm.getPage().evaluate(() => localStorage.getItem('who'));
+    expect(defaultSees).toBe('default-user');
+
+    // And alice's state survives independently
+    await bm.switchSession('alice');
+    const aliceStill = await bm.getPage().evaluate(() => localStorage.getItem('who'));
+    expect(aliceStill).toBe('alice-user');
+    await bm.switchSession('default');
+  });
+
+  test('sessions lists all sessions with the active marker', async () => {
+    const list = bm.listSessions();
+    const names = list.map(s => s.name).sort();
+    expect(names).toEqual(['alice', 'default']);
+    expect(list.find(s => s.name === 'default')?.active).toBe(true);
+    expect(list.find(s => s.name === 'alice')?.active).toBe(false);
+  });
+
+  test('session-close removes a session and rejects unknown/last', async () => {
+    const nowActive = await bm.closeSession('alice');
+    expect(nowActive).toBeNull(); // closed a non-active session
+    expect(bm.listSessions().length).toBe(1);
+
+    await expect(bm.closeSession('alice')).rejects.toThrow("not found");
+    await expect(bm.closeSession('default')).rejects.toThrow('last remaining');
+  });
+
+  test('closing the active session falls back to default', async () => {
+    await bm.switchSession('temp');
+    expect(bm.getActiveSessionName()).toBe('temp');
+    const nowActive = await bm.closeSession('temp');
+    expect(nowActive).toBe('default');
+    expect(bm.getActiveSessionName()).toBe('default');
+  });
+
+  test('invalid session names are rejected', async () => {
+    await expect(bm.switchSession('bad name!')).rejects.toThrow('1-32 chars');
+    await expect(bm.switchSession('')).rejects.toThrow();
+  });
+});
+
 // ─── Buffer bounds ──────────────────────────────────────────────
 
 describe('Buffer bounds', () => {

@@ -25,6 +25,16 @@ export interface RefEntry {
   name: string;
 }
 
+/** Per-session state: an isolated BrowserContext plus its tab/ref bookkeeping */
+interface SessionRecord {
+  context: BrowserContext;
+  pages: Map<number, Page>;
+  activeTabId: number;
+  nextTabId: number;
+  refMap: Map<string, RefEntry>;
+  lastSnapshot: string | null;
+}
+
 export interface BrowserState {
   cookies: Cookie[];
   pages: Array<{
@@ -48,6 +58,14 @@ export class BrowserManager {
 
   // ─── Ref Map (snapshot → @e1, @e2, @c1, @c2, ...) ────────
   private refMap: Map<string, RefEntry> = new Map();
+
+  // ─── Sessions (isolated browser contexts) ─────────────────
+  // Each session owns a BrowserContext with independent cookies/storage
+  // plus its own tab and ref state. The class fields above (context,
+  // pages, activeTabId, nextTabId, refMap, lastSnapshot) always alias
+  // the ACTIVE session's state so command handlers stay session-unaware.
+  private sessions: Map<string, SessionRecord> = new Map();
+  private activeSessionName = 'default';
 
   // ─── Snapshot Diffing ─────────────────────────────────────
   // NOT cleared on navigation — it's a text baseline for diffing
@@ -199,8 +217,142 @@ export class BrowserManager {
       await this.context.setExtraHTTPHeaders(this.extraHeaders);
     }
 
+    this.registerDefaultSession();
+
     // Create first tab
     await this.newTab();
+  }
+
+  // ─── Sessions ────────────────────────────────────────────────
+  /** Reset the sessions map to a single 'default' entry aliasing current state */
+  private registerDefaultSession(): void {
+    this.sessions.clear();
+    this.activeSessionName = 'default';
+    this.sessions.set('default', {
+      context: this.context!,
+      pages: this.pages,
+      activeTabId: this.activeTabId,
+      nextTabId: this.nextTabId,
+      refMap: this.refMap,
+      lastSnapshot: this.lastSnapshot,
+    });
+  }
+
+  /** Sync the active session record's scalar state from the class aliases */
+  private stashActiveSession(): void {
+    const rec = this.sessions.get(this.activeSessionName);
+    if (!rec) return;
+    rec.context = this.context!;
+    rec.pages = this.pages;
+    rec.activeTabId = this.activeTabId;
+    rec.nextTabId = this.nextTabId;
+    rec.refMap = this.refMap;
+    rec.lastSnapshot = this.lastSnapshot;
+  }
+
+  /** Point the class aliases at a session record's state */
+  private activateSessionRecord(name: string, rec: SessionRecord): void {
+    this.context = rec.context;
+    this.pages = rec.pages;
+    this.activeTabId = rec.activeTabId;
+    this.nextTabId = rec.nextTabId;
+    this.refMap = rec.refMap;
+    this.lastSnapshot = rec.lastSnapshot;
+    this.activeFrame = null; // frame context is per-tab
+    this.activeSessionName = name;
+  }
+
+  /**
+   * Switch to a named session, creating it (with an isolated BrowserContext —
+   * separate cookies/storage/history) if it doesn't exist.
+   * Returns true if the session was created, false if it already existed.
+   */
+  async switchSession(name: string): Promise<boolean> {
+    if (this.connectionMode === 'headed') {
+      throw new Error('Sessions are unavailable in headed mode (single persistent context)');
+    }
+    if (!this.browser) throw new Error('Browser not launched');
+    if (!/^[a-zA-Z0-9_-]{1,32}$/.test(name)) {
+      throw new Error('Session name must be 1-32 chars: letters, digits, dash, underscore');
+    }
+    if (name === this.activeSessionName) return false;
+
+    this.stashActiveSession();
+
+    const existing = this.sessions.get(name);
+    if (existing) {
+      this.activateSessionRecord(name, existing);
+      return false;
+    }
+
+    const contextOptions: BrowserContextOptions = {
+      viewport: { width: 1280, height: 720 },
+    };
+    if (this.customUserAgent) {
+      contextOptions.userAgent = this.customUserAgent;
+    }
+    const context = await this.browser.newContext(contextOptions);
+    if (Object.keys(this.extraHeaders).length > 0) {
+      await context.setExtraHTTPHeaders(this.extraHeaders);
+    }
+
+    const rec: SessionRecord = {
+      context,
+      pages: new Map(),
+      activeTabId: 0,
+      nextTabId: 1,
+      refMap: new Map(),
+      lastSnapshot: null,
+    };
+    this.sessions.set(name, rec);
+    this.activateSessionRecord(name, rec);
+    await this.newTab();
+    return true;
+  }
+
+  /**
+   * Close a named session and its BrowserContext. The last remaining session
+   * cannot be closed. If the active session is closed, switches to 'default'
+   * (or the first remaining session) and returns the new active name.
+   */
+  async closeSession(name: string): Promise<string | null> {
+    if (this.connectionMode === 'headed') {
+      throw new Error('Sessions are unavailable in headed mode (single persistent context)');
+    }
+    const rec = this.sessions.get(name);
+    if (!rec) throw new Error(`Session '${name}' not found`);
+    if (this.sessions.size === 1) {
+      throw new Error('Cannot close the last remaining session');
+    }
+
+    const closingActive = name === this.activeSessionName;
+    if (closingActive) this.stashActiveSession();
+
+    this.sessions.delete(name);
+    await rec.context.close().catch(() => {});
+
+    if (closingActive) {
+      const nextName = this.sessions.has('default')
+        ? 'default'
+        : [...this.sessions.keys()][0];
+      this.activateSessionRecord(nextName, this.sessions.get(nextName)!);
+      return nextName;
+    }
+    return null;
+  }
+
+  /** List all sessions with tab counts, active session first-marked */
+  listSessions(): Array<{ name: string; tabs: number; active: boolean }> {
+    this.stashActiveSession();
+    return [...this.sessions.entries()].map(([name, rec]) => ({
+      name,
+      tabs: rec.pages.size,
+      active: name === this.activeSessionName,
+    }));
+  }
+
+  getActiveSessionName(): string {
+    return this.activeSessionName;
   }
 
   // ─── Headed Mode ─────────────────────────────────────────────
@@ -249,6 +401,7 @@ export class BrowserManager {
     this.browser = this.context.browser();
     this.connectionMode = 'headed';
     this.intentionalDisconnect = false;
+    this.registerDefaultSession();
 
     // Inject visual indicator — subtle top-edge amber gradient
     // Extension's content script handles the floating pill

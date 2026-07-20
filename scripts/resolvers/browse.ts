@@ -11,14 +11,19 @@ export function generateCommandReference(_ctx: TemplateContext): string {
     groups.set(meta.category, list);
   }
 
-  // Category display order
+  // Category display order — categories missing from this list are appended
+  // at the end (alphabetically) so new command categories can never silently
+  // vanish from the generated reference.
   const categoryOrder = [
     'Navigation', 'Reading', 'Interaction', 'Inspection',
-    'Visual', 'Snapshot', 'Meta', 'Tabs', 'Server',
+    'Visual', 'Snapshot', 'Meta', 'Tabs', 'Sessions', 'Server',
   ];
+  const unlisted = [...groups.keys()]
+    .filter(c => !categoryOrder.includes(c))
+    .sort();
 
   const sections: string[] = [];
-  for (const category of categoryOrder) {
+  for (const category of [...categoryOrder, ...unlisted]) {
     const commands = groups.get(category);
     if (!commands || commands.length === 0) continue;
 

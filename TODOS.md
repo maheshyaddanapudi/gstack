@@ -36,17 +36,6 @@ May replace `/setup-browser-cookies` for most use cases since the user's real co
 
 ## Browse
 
-### Sessions (isolated browser instances)
-
-**What:** Isolated browser instances with separate cookies/storage/history, addressable by name.
-
-**Why:** Enables parallel testing of different user roles, A/B test verification, and clean auth state management.
-
-**Context:** Requires Playwright browser context isolation. Each session gets its own context with independent cookies/localStorage. Prerequisite for video recording (clean context lifecycle) and auth vault.
-
-**Effort:** L
-**Priority:** P3
-
 ### Video recording
 
 **What:** Record browser interactions as video (start/stop controls).
