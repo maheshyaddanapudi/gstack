@@ -835,6 +835,32 @@ describe('CLI lifecycle', () => {
     expect(stopResult.code).toBe(0);
     expect(stopResult.stdout).toContain('Server stopped');
   }, 40000);
+
+  test('restart actually restarts — server ends up alive with a new PID', async () => {
+    const stateFile = `/tmp/browse-test-restart-${Date.now()}.json`;
+
+    // Boot the first server
+    const first = await runCli(['status'], stateFile);
+    expect(first.code).toBe(0);
+    const firstPid = JSON.parse(fs.readFileSync(stateFile, 'utf-8')).pid;
+
+    // restart must leave a HEALTHY server behind (the old bug: it just
+    // exited, leaving no server until the next command booted one lazily)
+    const restart = await runCli(['restart'], stateFile);
+    expect(restart.code).toBe(0);
+    expect(restart.stdout).toContain('Server restarted');
+
+    // A fresh server is running under a new PID, and old PID is gone
+    const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+    const secondPid = JSON.parse(fs.readFileSync(stateFile, 'utf-8')).pid;
+    expect(secondPid).not.toBe(firstPid);
+    expect(alive(secondPid)).toBe(true);
+    expect(alive(firstPid)).toBe(false);
+
+    // Cleanup
+    try { process.kill(secondPid, 'SIGTERM'); } catch {}
+    try { fs.unlinkSync(stateFile); } catch {}
+  }, 40000);
 });
 
 // ─── Sessions ───────────────────────────────────────────────────
@@ -920,6 +946,32 @@ describe('Sessions', () => {
         expect(fs.statSync(v).size).toBeGreaterThan(0);
       }
     } finally {
+      bm.videosDir = prevVideosDir;
+      fs.rmSync(videosBase, { recursive: true, force: true });
+    }
+  }, 30000);
+
+  test('finalizeRecordings reports paths and is idempotent (stop-path safety net)', async () => {
+    const videosBase = fs.mkdtempSync(path.join(os.tmpdir(), 'browse-fin-'));
+    const prevVideosDir = bm.videosDir;
+    bm.videosDir = videosBase;
+
+    try {
+      await bm.switchSession('finrec', { record: true });
+      await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+
+      const videos = await bm.finalizeRecordings();
+      expect(videos.length).toBeGreaterThan(0);
+      expect(videos.every(v => v.endsWith('.webm') && fs.statSync(v).size > 0)).toBe(true);
+
+      // Idempotent: a second call (e.g. close() after the stop handler) is a no-op
+      const again = await bm.finalizeRecordings();
+      expect(again.length).toBe(0);
+
+      // The finalized session is no longer marked recording
+      expect(bm.listSessions().find(s => s.name === 'finrec')?.recording).toBe(false);
+    } finally {
+      await bm.closeSession('finrec').catch(() => {});
       bm.videosDir = prevVideosDir;
       fs.rmSync(videosBase, { recursive: true, force: true });
     }
