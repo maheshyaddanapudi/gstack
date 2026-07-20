@@ -23,7 +23,15 @@ case "${1:-}" in
     VALUE="${3:?Usage: gstack-config set <key> <value>}"
     mkdir -p "$STATE_DIR"
     if grep -qE "^${KEY}:" "$CONFIG_FILE" 2>/dev/null; then
-      sed -i '' "s/^${KEY}:.*/${KEY}: ${VALUE}/" "$CONFIG_FILE"
+      # Rewrite the key's line with awk (portable) instead of `sed -i ''`, which
+      # is BSD-only — on GNU sed the empty '' is read as the script and the real
+      # expression becomes a filename, so the update silently fails (exit 2).
+      # awk -v also passes VALUE literally, so URLs with '/' and ':' are safe
+      # (the old sed used '/' as its delimiter and would mangle them).
+      awk -v key="$KEY" -v val="$VALUE" '
+        $0 ~ "^" key ":" { print key ": " val; next }
+        { print }
+      ' "$CONFIG_FILE" > "$CONFIG_FILE.tmp" && mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
     else
       echo "${KEY}: ${VALUE}" >> "$CONFIG_FILE"
     fi

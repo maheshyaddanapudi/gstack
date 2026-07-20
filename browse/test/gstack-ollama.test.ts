@@ -145,3 +145,54 @@ describe('gstack-ollama config integration', () => {
     expect(stdout).toContain('codex CLI');
   });
 });
+
+describe('gstack-config set (portability)', () => {
+  function config(args: string[]) {
+    const result = Bun.spawnSync(['bash', CONFIG_SCRIPT, ...args], {
+      env: { ...process.env, GSTACK_STATE_DIR: stateDir },
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    return {
+      exitCode: result.exitCode,
+      stdout: result.stdout.toString().trim(),
+      stderr: result.stderr.toString(),
+    };
+  }
+
+  test('updates an existing key on GNU and BSD sed alike', () => {
+    // The old `sed -i ''` was BSD-only and silently failed (exit 2) on GNU
+    // sed, leaving the value unchanged. The awk rewrite works on both.
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(join(stateDir, 'config.yaml'), [
+      'codex_backend: codex',
+      'ollama_enabled: false',
+    ].join('\n'));
+
+    const set = config(['set', 'codex_backend', 'ollama']);
+    expect(set.exitCode).toBe(0);
+    expect(config(['get', 'codex_backend']).stdout).toBe('ollama');
+    // The other key is untouched
+    expect(config(['get', 'ollama_enabled']).stdout).toBe('false');
+  });
+
+  test('preserves URL values containing slashes and colons', () => {
+    // The old sed used '/' as its substitution delimiter, so a URL value
+    // would have mangled the expression even on BSD sed.
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(join(stateDir, 'config.yaml'), 'ollama_base_url: http://localhost:11434\n');
+
+    const set = config(['set', 'ollama_base_url', 'http://192.168.1.50:11434']);
+    expect(set.exitCode).toBe(0);
+    expect(config(['get', 'ollama_base_url']).stdout).toBe('http://192.168.1.50:11434');
+  });
+
+  test('appends a new key when absent', () => {
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(join(stateDir, 'config.yaml'), 'existing: yes\n');
+
+    expect(config(['set', 'provider_mode', 'hybrid']).exitCode).toBe(0);
+    expect(config(['get', 'provider_mode']).stdout).toBe('hybrid');
+    expect(config(['get', 'existing']).stdout).toBe('yes');
+  });
+});
