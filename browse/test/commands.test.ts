@@ -14,6 +14,7 @@ import { handleWriteCommand } from '../src/write-commands';
 import { handleMetaCommand } from '../src/meta-commands';
 import { consoleBuffer, networkBuffer, dialogBuffer, addConsoleEntry, addNetworkEntry, addDialogEntry, CircularBuffer } from '../src/buffers';
 import * as fs from 'fs';
+import * as os from 'os';
 import { spawn } from 'child_process';
 import * as path from 'path';
 
@@ -771,6 +772,48 @@ describe('CLI lifecycle', () => {
     expect(result.stdout).toContain('No server running.');
     expect(result.stderr).not.toContain('Starting server');
   }, 20000);
+
+  test('compiled binary self-serves without bun on PATH or a source tree', async () => {
+    const binaryPath = path.resolve(__dirname, '../dist/browse');
+    if (!fs.existsSync(binaryPath)) {
+      // Binary not built in this checkout — nothing to verify
+      return;
+    }
+
+    const isoDir = fs.mkdtempSync(path.join(os.tmpdir(), 'browse-iso-'));
+    const isoBinary = path.join(isoDir, 'browse');
+    fs.copyFileSync(binaryPath, isoBinary);
+    fs.chmodSync(isoBinary, 0o755);
+    const stateFile = path.join(isoDir, '.gstack', 'browse.json');
+
+    // Minimal env: no bun, no repo on PATH — the binary must be self-sufficient
+    const env: Record<string, string> = {
+      HOME: process.env.HOME ?? '/tmp',
+      PATH: '/usr/bin:/bin',
+      BROWSE_STATE_FILE: stateFile,
+      CI: '1', // extended server-start timeout for cold Chromium launch
+    };
+    if (process.env.PLAYWRIGHT_BROWSERS_PATH) {
+      env.PLAYWRIGHT_BROWSERS_PATH = process.env.PLAYWRIGHT_BROWSERS_PATH;
+    }
+
+    const run = (args: string[]) => new Promise<{ code: number; stdout: string }>((resolve) => {
+      const proc = spawn(isoBinary, args, { cwd: isoDir, timeout: 60000, env });
+      let stdout = '';
+      proc.stdout.on('data', (d) => stdout += d.toString());
+      proc.stderr.on('data', () => {});
+      proc.on('close', (code) => resolve({ code: code ?? 1, stdout }));
+    });
+
+    try {
+      const statusResult = await run(['status']);
+      expect(statusResult.code).toBe(0);
+      expect(statusResult.stdout).toContain('Status: healthy');
+    } finally {
+      await run(['stop']);
+      fs.rmSync(isoDir, { recursive: true, force: true });
+    }
+  }, 90000);
 
   test('stop against a running server reports success and exits 0', async () => {
     const stateFile = `/tmp/browse-test-stop-live-${Date.now()}.json`;

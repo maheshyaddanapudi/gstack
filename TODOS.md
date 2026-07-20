@@ -36,18 +36,6 @@ May replace `/setup-browser-cookies` for most use cases since the user's real co
 
 ## Browse
 
-### Bundle server.ts into compiled binary
-
-**What:** Eliminate `resolveServerScript()` fallback chain entirely — bundle server.ts into the compiled browse binary.
-
-**Why:** The current fallback chain (check adjacent to cli.ts, check global install) is fragile and caused bugs in v0.3.2. A single compiled binary is simpler and more reliable.
-
-**Context:** Bun's `--compile` flag can bundle multiple entry points. The server is currently resolved at runtime via file path lookup. Bundling it removes the resolution step entirely.
-
-**Effort:** M
-**Priority:** P2
-**Depends on:** None
-
 ### Sessions (isolated browser instances)
 
 **What:** Isolated browser instances with separate cookies/storage/history, addressable by name.

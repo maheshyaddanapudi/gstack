@@ -49,7 +49,18 @@ export function resolveServerScript(
   );
 }
 
-const SERVER_SCRIPT = resolveServerScript();
+// Compiled binaries carry the server module inside the bundle ($bunfs) and
+// self-spawn via the internal `__serve` subcommand — no source tree or bun
+// on PATH needed at runtime. Dev mode (bun run src/cli.ts) still spawns
+// server.ts from disk, resolved lazily so a missing source tree only fails
+// the path that actually needs it.
+const IS_COMPILED = import.meta.dir.includes('$bunfs');
+
+let devServerScript: string | null = null;
+function getServerScript(): string {
+  if (devServerScript === null) devServerScript = resolveServerScript();
+  return devServerScript;
+}
 
 /**
  * On Windows, resolve the Node.js-compatible server bundle.
@@ -238,9 +249,17 @@ async function startServer(extraEnv?: Record<string, string>): Promise<ServerSta
       `{detached:true,stdio:['ignore','ignore','ignore'],env:Object.assign({},process.env,` +
       `{BROWSE_STATE_FILE:${JSON.stringify(config.stateFile)}})}).unref()`;
     Bun.spawnSync(['node', '-e', launcherCode], { stdio: ['ignore', 'ignore', 'ignore'] });
+  } else if (IS_COMPILED && !process.env.BROWSE_SERVER_SCRIPT) {
+    // Compiled binary: self-spawn — the server module is inside the bundle.
+    // BROWSE_SERVER_SCRIPT still overrides for tests and escape hatches.
+    proc = Bun.spawn([process.execPath, '__serve'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, BROWSE_STATE_FILE: config.stateFile, ...extraEnv },
+    });
+    proc.unref();
   } else {
-    // macOS/Linux: Bun.spawn + unref works correctly
-    proc = Bun.spawn(['bun', 'run', SERVER_SCRIPT], {
+    // Dev mode (or BROWSE_SERVER_SCRIPT override): spawn server.ts from disk
+    proc = Bun.spawn(['bun', 'run', getServerScript()], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, BROWSE_STATE_FILE: config.stateFile, ...extraEnv },
     });
@@ -448,6 +467,14 @@ async function sendCommand(state: ServerState, command: string, args: string[], 
 // ─── Main ──────────────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2);
+
+  // Internal: run the bundled server in-process. Used by the compiled binary
+  // to self-spawn (`browse __serve`) so no source tree or bun install is
+  // needed at runtime. server.ts boots on import.
+  if (args[0] === '__serve') {
+    await import('./server');
+    return;
+  }
 
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     console.log(`gstack browse — Fast headless browser for AI coding agents
