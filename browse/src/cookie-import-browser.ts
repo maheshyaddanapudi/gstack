@@ -16,14 +16,18 @@
  *   │    - Linux v10: "peanuts", PBKDF2(..., iter=1)                  │
  *   │    - Linux v11: libsecret/secret-tool password, iter=1          │
  *   │                                                                  │
- *   │ 3. For each cookie with encrypted_value starting with "v10"/     │
- *   │    "v11":                                                        │
+ *   │ 3a. v10/v11 cookies (AES-128-CBC):                              │
  *   │    - Ciphertext = encrypted_value[3:]                           │
  *   │    - IV = 16 bytes of 0x20 (space character)                    │
  *   │    - Plaintext = AES-128-CBC-decrypt(key, iv, ciphertext)       │
  *   │    - Remove PKCS7 padding                                       │
  *   │    - Skip first 32 bytes of Chromium cookie metadata            │
  *   │    - Remaining bytes = cookie value (UTF-8)                     │
+ *   │ 3b. v20 app-bound cookies (AES-256-GCM, Chromium 127+):         │
+ *   │    - 'v20' | 12-byte nonce | ciphertext | 16-byte auth tag      │
+ *   │    - Plaintext = AES-256-GCM-decrypt (tag-verified)             │
+ *   │    - Skip first 32 bytes of metadata; rest = value (UTF-8)      │
+ *   │    - Key derivation (OS keychain / DPAPI) is not yet wired      │
  *   │                                                                  │
  *   │ 4. If encrypted_value is empty but `value` field is set,        │
  *   │    use value directly (unencrypted cookie)                      │
@@ -552,7 +556,7 @@ async function runPasswordLookup(cmd: string[], timeoutMs: number): Promise<stri
 
 // ─── Internal: Cookie Decryption ────────────────────────────────
 
-interface RawCookie {
+export interface RawCookie {
   host_key: string;
   name: string;
   value: string;
@@ -565,7 +569,9 @@ interface RawCookie {
   samesite: number;
 }
 
-function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>): string {
+// Exported for unit testing the decryption primitives (v10/v11 CBC, v20 GCM)
+// directly — key *derivation* is OS-specific and covered by the profile tests.
+export function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>): string {
   // Prefer unencrypted value if present
   if (row.value && row.value.length > 0) return row.value;
 
@@ -576,12 +582,33 @@ function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>): string {
   const key = keys.get(prefix);
   if (!key) throw new Error(`No decryption key available for ${prefix} cookies`);
 
-  const ciphertext = ev.slice(3);
-  const iv = Buffer.alloc(16, 0x20); // 16 space characters
-  const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
-  const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  let plaintext: Buffer;
+  if (prefix === 'v20') {
+    // v20 (app-bound encryption, Chromium 127+): AES-256-GCM.
+    // Layout: 'v20' | 12-byte nonce | ciphertext | 16-byte auth tag.
+    // The auth tag makes a wrong key fail loudly (final() throws) instead
+    // of silently yielding garbage the way CBC would.
+    const GCM_NONCE_LEN = 12;
+    const GCM_TAG_LEN = 16;
+    if (ev.length < 3 + GCM_NONCE_LEN + GCM_TAG_LEN) {
+      throw new Error('v20 cookie payload too short');
+    }
+    const nonce = ev.slice(3, 3 + GCM_NONCE_LEN);
+    const tag = ev.slice(ev.length - GCM_TAG_LEN);
+    const ciphertext = ev.slice(3 + GCM_NONCE_LEN, ev.length - GCM_TAG_LEN);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce);
+    decipher.setAuthTag(tag);
+    plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  } else {
+    // v10/v11 (Linux/macOS): AES-128-CBC, IV = 16 space characters.
+    const ciphertext = ev.slice(3);
+    const iv = Buffer.alloc(16, 0x20);
+    const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+    plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  }
 
-  // Chromium prefixes encrypted cookie payloads with 32 bytes of metadata.
+  // Chromium prefixes encrypted cookie payloads with 32 bytes of metadata
+  // (a SHA-256 domain hash) in both the CBC and app-bound GCM formats.
   if (plaintext.length <= 32) return '';
   return plaintext.slice(32).toString('utf-8');
 }

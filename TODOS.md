@@ -47,13 +47,17 @@ May replace `/setup-browser-cookies` for most use cases since the user's real co
 **Effort:** S
 **Priority:** P3
 
-### v20 encryption format support
+### v20 encryption format support — DECRYPTION SHIPPED
 
-**What:** AES-256-GCM support for future Chromium cookie DB versions (currently v10).
+~~**What:** AES-256-GCM support for future Chromium cookie DB versions.~~
 
-**Why:** Future Chromium versions may change encryption format. Proactive support prevents breakage.
+`decryptCookieValue()` now handles the v20 app-bound layout (AES-256-GCM:
+nonce | ciphertext | auth tag), verified by round-trip unit tests. The auth
+tag makes a wrong key fail loudly instead of yielding garbage.
 
-**Effort:** S
+**Remaining:** OS-specific v20 *key derivation* (Windows DPAPI elevation /
+macOS app-bound service) — needs a real Windows/macOS Chromium to verify, so
+it stays unimplemented rather than shipped untested.
 **Priority:** P3
 
 ### State persistence — SHIPPED
