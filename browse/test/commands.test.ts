@@ -951,6 +951,28 @@ describe('Sessions', () => {
     }
   }, 30000);
 
+  test('recording captures every tab in a multi-tab session', async () => {
+    const videosBase = fs.mkdtempSync(path.join(os.tmpdir(), 'browse-multivid-'));
+    const prevVideosDir = bm.videosDir;
+    bm.videosDir = videosBase;
+
+    try {
+      await bm.switchSession('multirec', { record: true });
+      // The agent opens extra tabs mid-session — each Playwright page in a
+      // recording context gets its own .webm, and finalize must return them all.
+      await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+      await bm.newTab(baseUrl + '/forms.html');
+      await bm.newTab(baseUrl + '/basic.html');
+
+      const { videos } = await bm.closeSession('multirec');
+      expect(videos.length).toBe(3);
+      expect(videos.every(v => v.endsWith('.webm') && fs.statSync(v).size > 0)).toBe(true);
+    } finally {
+      bm.videosDir = prevVideosDir;
+      fs.rmSync(videosBase, { recursive: true, force: true });
+    }
+  }, 30000);
+
   test('finalizeRecordings reports paths and is idempotent (stop-path safety net)', async () => {
     const videosBase = fs.mkdtempSync(path.join(os.tmpdir(), 'browse-fin-'));
     const prevVideosDir = bm.videosDir;
