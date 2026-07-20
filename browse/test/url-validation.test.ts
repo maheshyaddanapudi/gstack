@@ -62,8 +62,25 @@ describe('validateNavigationUrl', () => {
     await expect(validateNavigationUrl('http://0251.0376.0251.0376/')).rejects.toThrow(/cloud metadata/i);
   });
 
-  it('blocks IPv6 metadata with brackets', async () => {
-    await expect(validateNavigationUrl('http://[fd00::]/')).rejects.toThrow(/cloud metadata/i);
+  it('blocks the AWS IMDSv6 endpoint (canonical form)', async () => {
+    await expect(validateNavigationUrl('http://[fd00:ec2::254]/latest/meta-data/')).rejects.toThrow(/cloud metadata/i);
+  });
+
+  it('blocks the AWS IMDSv6 endpoint in uncompressed form', async () => {
+    // fd00:ec2:0:0:0:0:0:254 is the same address as fd00:ec2::254 — a single
+    // blocklist entry must catch every representation.
+    await expect(validateNavigationUrl('http://[fd00:ec2:0:0:0:0:0:254]/')).rejects.toThrow(/cloud metadata/i);
+  });
+
+  it('blocks the AWS IMDSv6 endpoint in uppercase form', async () => {
+    await expect(validateNavigationUrl('http://[FD00:EC2::254]/')).rejects.toThrow(/cloud metadata/i);
+  });
+
+  it('still allows IPv6 loopback and ordinary ULA private addresses', async () => {
+    // The fix must not over-block: ::1 and generic fd00::/8 ULA addresses are
+    // private, and QA-of-local-services is the whole point of this validator.
+    await expect(validateNavigationUrl('http://[::1]:3000/')).resolves.toBeUndefined();
+    await expect(validateNavigationUrl('http://[fd00::1]/')).resolves.toBeUndefined();
   });
 
   it('throws on malformed URLs', async () => {

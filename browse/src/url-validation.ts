@@ -4,8 +4,8 @@
  */
 
 const BLOCKED_METADATA_HOSTS = new Set([
-  '169.254.169.254',  // AWS/GCP/Azure instance metadata
-  'fd00::',           // IPv6 unique local (metadata in some cloud setups)
+  '169.254.169.254',  // AWS/GCP/Azure instance metadata (IPv4)
+  'fd00:ec2::254',    // AWS IMDS over IPv6 (canonical compressed form)
   'metadata.google.internal', // GCP metadata
   'metadata.azure.internal',  // Azure IMDS
 ]);
@@ -49,15 +49,27 @@ function isMetadataIp(hostname: string): boolean {
  * Mitigates DNS rebinding: even if the hostname looks safe, the resolved IP might not be.
  */
 async function resolvesToBlockedIp(hostname: string): Promise<boolean> {
-  try {
-    const dns = await import('node:dns');
-    const { resolve4 } = dns.promises;
-    const addresses = await resolve4(hostname);
-    return addresses.some(addr => BLOCKED_METADATA_HOSTS.has(addr));
-  } catch {
-    // DNS resolution failed — not a rebinding risk
-    return false;
-  }
+  const dns = await import('node:dns');
+  const { resolve4, resolve6 } = dns.promises;
+
+  // Resolve A and AAAA records in parallel; ignore whichever fails (a host may
+  // have only one family). An empty/failed lookup is not a rebinding risk.
+  const [v4, v6] = await Promise.all([
+    resolve4(hostname).catch(() => [] as string[]),
+    resolve6(hostname).catch(() => [] as string[]),
+  ]);
+
+  // Canonicalize each resolved address through the same path as the hostname
+  // check so IPv6 form differences (compression, case) can't dodge the set.
+  return [...v4, ...v6].some(addr => {
+    if (BLOCKED_METADATA_HOSTS.has(addr)) return true;
+    try {
+      const canon = normalizeHostname(new URL(`http://${addr.includes(':') ? `[${addr}]` : addr}`).hostname.toLowerCase());
+      return BLOCKED_METADATA_HOSTS.has(canon);
+    } catch {
+      return false;
+    }
+  });
 }
 
 export async function validateNavigationUrl(url: string): Promise<void> {
