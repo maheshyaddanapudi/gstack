@@ -180,9 +180,15 @@ async function killServer(pid: number): Promise<void> {
     await Bun.sleep(100);
   }
 
-  // Force kill if still alive
+  // Force kill if still alive, then confirm death — returning while the
+  // process is still dying lets a restart start a new server before the old
+  // one has released its resources.
   if (isProcessAlive(pid)) {
     try { process.kill(pid, 'SIGKILL'); } catch {}
+    const killDeadline = Date.now() + 2000;
+    while (Date.now() < killDeadline && isProcessAlive(pid)) {
+      await Bun.sleep(50);
+    }
   }
 }
 
@@ -624,6 +630,23 @@ Refs:           After 'snapshot', use @e1, @e2... as selectors:
       console.log('No server running.');
       process.exit(0);
     }
+  }
+
+  // ─── Restart (pre-server command) ───────────────────────────
+  // restart must be handled CLI-side — the old server-side handler just shut
+  // down and relied on a "the CLI will restart" that never existed, so the
+  // server only came back lazily on the next command. Kill the old server
+  // (graceful SIGTERM → SIGKILL fallback, videos/buffers flushed), then start
+  // a fresh one so restart actually restarts.
+  if (command === 'restart') {
+    const existingState = readState();
+    if (existingState && isProcessAlive(existingState.pid)) {
+      await killServer(existingState.pid);
+    }
+    try { fs.unlinkSync(config.stateFile); } catch {}
+    const fresh = await startServer();
+    console.log(`Server restarted (PID ${fresh.pid}).`);
+    process.exit(0);
   }
 
   // ─── Headed Disconnect (pre-server command) ─────────────────
