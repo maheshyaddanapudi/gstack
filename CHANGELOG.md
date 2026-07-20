@@ -24,8 +24,8 @@ Two big additions this release: gstack can now run against **local models** on y
 ### For contributors
 
 - **Knowledge graph of the whole repo.** `graphify-out/` holds an interactive graph (1,528 nodes, 124 communities) of how gstack fits together — god nodes, surprising cross-module links, and an audit report — generated from the codebase and docs.
-- **Adversarial review pass.** The new browser code was run through an independent bug-hunt; every real finding (restart, recording finalization, a latent stale-context reference, a `killServer` race) is fixed and regression-tested.
-- **Generator hardening + dead code removal.** The SKILL.md command-reference generator no longer silently drops command categories missing from its display-order list, and ~100 lines of dead duplicate resolver functions were removed from `gen-skill-docs.ts`. Stale generated docs and a couple of drifted tests were brought back in sync.
+- **Adversarial review passes.** Both the new browser code and the local-model (Ollama) code were run through independent bug-hunts before release. Every real finding is fixed and regression-tested: on the browser side, `restart` not restarting, recording finalization on shutdown, a latent stale-context reference, and a `killServer` race; on the Ollama side, `gstack-config set` silently failing on GNU sed (Linux), tier routing collapsing to Tier 1 for E2E test-case names, empty config values defeating their defaults, a cloud model override being sent to the local endpoint, untagged model names reported as missing, and `config get` truncating spaced values.
+- **Generator hardening + dead code removal.** The SKILL.md command-reference generator no longer silently drops command categories missing from its display-order list, ~100 lines of dead duplicate resolver functions were removed from `gen-skill-docs.ts`, and a duplicate-key bug in the diff-based test-selection map (which silently dropped a test's file dependencies) was fixed and guarded with a source-level test. Stale generated docs and a couple of drifted tests were brought back in sync.
 
 ## [0.12.5.0] - 2026-03-26 — Fix Codex Hangs: 30-Minute Waits Are Gone
 
