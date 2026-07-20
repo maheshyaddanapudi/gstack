@@ -74,7 +74,9 @@ export function codexSkillName(skillDir: string): string {
  * Handles multiline block scalar descriptions (YAML | syntax).
  */
 export function transformFrontmatter(content: string, host: Host): string {
-  if (host === 'claude') return content;
+  // claude and ollama both consume the SKILL.md as-is (ollama runs through the
+  // Claude CLI); only Codex needs the frontmatter rewritten.
+  if (host === 'claude' || host === 'ollama') return content;
 
   // Find frontmatter boundaries
   const fmStart = content.indexOf('---\n');

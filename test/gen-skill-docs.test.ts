@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { COMMAND_DESCRIPTIONS } from '../browse/src/commands';
 import { SNAPSHOT_FLAGS } from '../browse/src/snapshot';
+import { transformFrontmatter } from '../scripts/resolvers/codex-helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -1645,5 +1646,36 @@ describe('telemetry', () => {
         expect(content).toContain('Telemetry (run last)');
       }
     }
+  });
+});
+
+describe('transformFrontmatter (single source of truth in codex-helpers)', () => {
+  const skill = [
+    '---',
+    'name: demo',
+    'description: A demo skill',
+    '---',
+    '',
+    '# Body content',
+  ].join('\n');
+
+  test('claude host returns content unchanged', () => {
+    expect(transformFrontmatter(skill, 'claude')).toBe(skill);
+  });
+
+  test('ollama host returns content unchanged (runs through the Claude CLI)', () => {
+    // Regression: the Ollama host was handled in a stale LOCAL copy of this
+    // function in gen-skill-docs.ts but NOT in the extracted export, which had
+    // diverged. Anything importing the export got Codex frontmatter applied to
+    // ollama. The duplicate is gone; the export must handle ollama here.
+    expect(transformFrontmatter(skill, 'ollama')).toBe(skill);
+  });
+
+  test('codex host rewrites the frontmatter (name + description block)', () => {
+    const out = transformFrontmatter(skill, 'codex');
+    expect(out).not.toBe(skill);
+    expect(out).toContain('name: demo');
+    expect(out).toContain('description: |');
+    expect(out).toContain('# Body content');
   });
 });
