@@ -309,6 +309,39 @@ describe('getModelForSkill', () => {
     expect(getModelForSkill('unknown-skill').model).toBe('big:32b');
     expect(getModelForSkill('').model).toBe('big:32b');
   });
+
+  test('E2E test-case names resolve to their skill tier (prefix match)', async () => {
+    writeConfig([
+      'ollama_enabled: true',
+      'ollama_tier1_model: big:32b',
+      'ollama_tier2_model: med:14b',
+      'ollama_tier3_model: small:7b',
+      'provider_mode: local',
+    ].join('\n'));
+
+    // Callers pass hyphenated test-case names, not bare skill names. These must
+    // resolve to the SKILL's tier, not silently fall through to Tier 1.
+    expect(getModelForSkill('browse-basic').model).toBe('small:7b');   // browse → T3
+    expect(getModelForSkill('browse-snapshot').model).toBe('small:7b');
+    expect(getModelForSkill('benchmark-workflow').model).toBe('small:7b');
+    expect(getModelForSkill('ship-local-workflow').model).toBe('big:32b'); // ship → T1
+    expect(getModelForSkill('qa-quick').model).toBe('big:32b');            // qa → T1
+    expect(getModelForSkill('canary-workflow').model).toBe('med:14b');     // canary → T2
+  });
+
+  test('present-but-empty model values fall back to defaults (not empty string)', async () => {
+    // `ollama_tier2_model:` with no value must not yield model '' — that is
+    // non-nullish and defeats the ?? default, breaking downstream resolution.
+    writeConfig([
+      'ollama_enabled: true',
+      'ollama_tier2_model:',
+      'provider_mode: local',
+    ].join('\n'));
+
+    const res = getModelForTier(2);
+    expect(res.model).toBe('qwen3:14b'); // default, not ''
+    expect(res.model).not.toBe('');
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════

@@ -111,6 +111,10 @@ function parseSimpleYaml(content: string): Record<string, string> {
     if (colonIdx === -1) continue;
     const key = trimmed.slice(0, colonIdx).trim();
     const value = trimmed.slice(colonIdx + 1).trim();
+    // Skip present-but-empty values (`key:` with no value). Otherwise the ''
+    // is non-nullish and defeats every `kv[...] ?? default` fallback, so an
+    // empty `ollama_tier2_model:` would yield model '' instead of the default.
+    if (value === '') continue;
     result[key] = value;
   }
   return result;
@@ -209,8 +213,30 @@ export function getModelForTier(tier: ModelTier): ModelResolution {
  */
 export function getModelForSkill(skillName: string): ModelResolution {
   const normalized = skillName.replace(/^\//, '').toLowerCase();
-  const tier = SKILL_TIERS[normalized] ?? 1;
+  const tier = resolveTier(normalized);
   return getModelForTier(tier);
+}
+
+/**
+ * Map a skill OR E2E test-case name to a tier. Callers pass both: real skill
+ * names ('browse', 'qa') and hyphenated test-case names ('browse-basic',
+ * 'qa-quick', 'ship-local-workflow'). An exact match wins; otherwise fall back
+ * to the LONGEST SKILL_TIERS key that is a dash-boundary prefix of the name, so
+ * 'browse-basic' → 'browse' and 'ship-local-workflow' → 'ship'. Without this,
+ * every test-case name missed the map and silently resolved to tier 1,
+ * defeating the whole tier system whenever Ollama was enabled.
+ */
+export function resolveTier(normalized: string): ModelTier {
+  const exact = SKILL_TIERS[normalized];
+  if (exact !== undefined) return exact;
+
+  let best: { key: string; tier: ModelTier } | null = null;
+  for (const [key, tier] of Object.entries(SKILL_TIERS)) {
+    if (normalized === key || normalized.startsWith(key + '-')) {
+      if (!best || key.length > best.key.length) best = { key, tier };
+    }
+  }
+  return best ? best.tier : 1;
 }
 
 /**
