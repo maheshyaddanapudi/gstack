@@ -81,7 +81,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'ship-local-workflow': ['ship/**', 'scripts/gen-skill-docs.ts'],
   'review-dashboard-via': ['ship/**', 'scripts/resolvers/review.ts', 'codex/**', 'autoplan/**', 'land-and-deploy/**'],
   'ship-plan-completion': ['ship/**', 'scripts/gen-skill-docs.ts'],
-  'ship-plan-verification': ['ship/**', 'scripts/gen-skill-docs.ts'],
+  'ship-plan-verification': ['ship/**', 'qa-only/**', 'scripts/gen-skill-docs.ts'],
 
   // Retro
   'retro':             ['retro/**'],
@@ -117,8 +117,7 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'ship-triage': ['ship/**', 'bin/gstack-repo-mode'],
 
   // Plan completion audit + verification
-  'ship-plan-completion': ['ship/**', 'scripts/gen-skill-docs.ts'],
-  'ship-plan-verification': ['ship/**', 'qa-only/**', 'scripts/gen-skill-docs.ts'],
+  // (ship-plan-completion / ship-plan-verification live in the Ship section above)
   'review-plan-completion': ['review/**', 'scripts/gen-skill-docs.ts'],
 
   // Design

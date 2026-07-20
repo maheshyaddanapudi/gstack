@@ -274,6 +274,54 @@ describe('TOUCHFILES completeness', () => {
     }
   });
 
+  test('no duplicate keys in the touchfiles source (silent-override guard)', () => {
+    // A duplicate key in an object literal is silently deduped by JS — the last
+    // wins and any edit to an earlier occurrence is a no-op. In the touchfiles
+    // map that means a test's file-dependencies can be silently dropped, so the
+    // test stops running when a relevant file changes. Detect it at the source
+    // level, per top-level `const NAME = { ... }` block.
+    const src = fs.readFileSync(
+      path.join(ROOT, 'test', 'helpers', 'touchfiles.ts'),
+      'utf-8',
+    );
+    const lines = src.split('\n');
+
+    let currentMap: string | null = null;
+    let depth = 0;
+    const seen: Record<string, Set<string>> = {};
+    const dups: string[] = [];
+
+    for (const line of lines) {
+      const open = line.match(/^export const (\w+)(?::[^=]+)?\s*=\s*\{/);
+      if (open && depth === 0) {
+        currentMap = open[1];
+        seen[currentMap] = new Set();
+        depth = 1;
+        continue;
+      }
+      if (currentMap) {
+        depth += (line.match(/\{/g) || []).length;
+        depth -= (line.match(/\}/g) || []).length;
+        if (depth <= 0) { currentMap = null; depth = 0; continue; }
+        // Only count keys at the map's own top level (depth 1)
+        const key = line.match(/^\s*['"]([^'"]+)['"]\s*:/);
+        if (key && depth === 1) {
+          if (seen[currentMap].has(key[1])) {
+            dups.push(`${currentMap}['${key[1]}']`);
+          } else {
+            seen[currentMap].add(key[1]);
+          }
+        }
+      }
+    }
+
+    if (dups.length > 0) {
+      throw new Error(
+        `Duplicate keys in touchfiles.ts (silently overridden — last wins):\n  ${dups.join('\n  ')}`,
+      );
+    }
+  });
+
   test('every LLM-judge test has a TOUCHFILES entry', () => {
     const llmContent = fs.readFileSync(
       path.join(ROOT, 'test', 'skill-llm-eval.test.ts'),
