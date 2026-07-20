@@ -139,8 +139,8 @@ export async function runSkillTest(options: {
   } = options;
   // Model resolution: explicit option > env override > Ollama tier config > cloud default
   const ollamaResolution = getModelForSkill(options.testName ?? '');
-  const model = options.model
-    ?? process.env.EVALS_MODEL
+  const overrideModel = options.model ?? process.env.EVALS_MODEL;
+  const model = overrideModel
     ?? ollamaResolution.model
     ?? 'claude-sonnet-4-6';
 
@@ -175,8 +175,14 @@ export async function runSkillTest(options: {
   const promptFile = path.join(os.tmpdir(), `.prompt-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   fs.writeFileSync(promptFile, prompt);
 
-  // If Ollama is configured for this skill's tier, set env vars for the subprocess
-  const spawnEnv = buildOllamaEnv(ollamaResolution);
+  // Set up env for the subprocess. Only apply the Ollama redirect when the
+  // model actually came from the tier resolution — an explicit override
+  // (options.model / EVALS_MODEL) names a specific model the caller wants,
+  // so it must NOT be pointed at the Ollama endpoint (that would send a cloud
+  // model name to localhost:11434 and fail).
+  const spawnEnv = overrideModel
+    ? { ...process.env } as Record<string, string>
+    : buildOllamaEnv(ollamaResolution);
 
   const proc = Bun.spawn(['sh', '-c', `cat "${promptFile}" | claude ${args.map(a => `"${a}"`).join(' ')}`], {
     cwd: workingDirectory,
