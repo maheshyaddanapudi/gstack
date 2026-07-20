@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.13.0.0] - 2026-07-20 — Run Local, Browse in Parallel, Record What You Do
+
+Two big additions this release: gstack can now run against **local models** on your own machine, and the `browse` browser gained **named sessions** and **video recording**. Plus a compiled binary that no longer needs its source tree, support for the newest Chromium cookie encryption, and a fistful of reliability fixes found by an adversarial review of the new code.
+
+### Added
+
+- **Run gstack on local models (Ollama).** A new 3-tier config system maps each skill to a model size — heavyweight reasoning (32B) for planning and review, mid-tier (14B) for most work, light (7B) for quick tasks — so you can run entirely local, entirely cloud, or a hybrid where only the hardest tiers hit the cloud. `./setup --host ollama` walks you through it with a setup wizard, and `/codex` can now point at a local model, Claude, or the OpenAI Codex CLI — your choice, saved in `~/.gstack/config.yaml`.
+- **Named browser sessions.** `browse session <name>` gives you an isolated browser context — its own cookies, storage, and history — addressable by name. Test a logged-in admin and a logged-out visitor side by side without them stepping on each other. `browse sessions` lists them; `browse session-close <name>` tears one down.
+- **Session video recording.** Add `--record` when you create a session and browse captures a `.webm` of everything it does. The file path is printed when the session (or the server) closes — drop it straight into a QA report or PR. Recordings finalize safely even on `browse stop`.
+- **v20 cookie decryption.** `browse cookie-import-browser` now understands Chromium 127+'s app-bound cookie format (AES-256-GCM), so importing cookies from a current Chrome keeps working. The authenticated format also means a wrong key fails loudly instead of handing back garbage.
+
+### Changed
+
+- **The compiled `browse` binary is now self-contained.** It carries its own server and starts it directly — no `bun` on your PATH, no source tree next to the binary. Copy the one file anywhere and it runs. (This was the source of a class of "server not found" startup bugs.)
+
+### Fixed
+
+- **`browse restart` actually restarts now.** It used to just shut the server down and leave it dead until your next command happened to boot a new one. It now kills the old server and starts a fresh one, and tells you the new process ID.
+- **`browse stop` exits cleanly.** It used to print a raw connection error and exit non-zero even though the server had stopped fine — and a stop with nothing running would pointlessly spin up a server just to kill it. Both fixed.
+- **`browse` runs as root.** In root containers (common in CI and cloud shells) Chromium refused to launch; it now disables the sandbox automatically in that case, the same way it already did under an explicit CI flag.
+
+### For contributors
+
+- **Knowledge graph of the whole repo.** `graphify-out/` holds an interactive graph (1,528 nodes, 124 communities) of how gstack fits together — god nodes, surprising cross-module links, and an audit report — generated from the codebase and docs.
+- **Adversarial review pass.** The new browser code was run through an independent bug-hunt; every real finding (restart, recording finalization, a latent stale-context reference, a `killServer` race) is fixed and regression-tested.
+- **Generator hardening + dead code removal.** The SKILL.md command-reference generator no longer silently drops command categories missing from its display-order list, and ~100 lines of dead duplicate resolver functions were removed from `gen-skill-docs.ts`. Stale generated docs and a couple of drifted tests were brought back in sync.
+
 ## [0.12.5.0] - 2026-03-26 — Fix Codex Hangs: 30-Minute Waits Are Gone
 
 Three bugs in `/codex` caused 30+ minute hangs with zero output during plan reviews and adversarial checks. All three are fixed.
