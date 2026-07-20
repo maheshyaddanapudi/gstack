@@ -71,12 +71,23 @@ except:
 # ─── Check if a specific model exists ────────────────────────
 model_exists() {
   local url="$1" model="$2"
-  curl -sf "$url/api/tags" 2>/dev/null | python3 -c "
-import sys, json
+  # Pass the model name via env (not string-interpolated into the Python) so a
+  # name with quotes can't break the script.
+  GSTACK_MODEL="$model" curl -sf "$url/api/tags" 2>/dev/null | python3 -c "
+import sys, json, os
+model = os.environ.get('GSTACK_MODEL', '')
 data = json.load(sys.stdin)
 names = [m['name'] for m in data.get('models', [])]
-# Also check without tag (e.g., 'qwen3:32b' matches 'qwen3:32b')
-sys.exit(0 if '$model' in names else 1)
+# Exact match, or — when the configured model has no explicit tag — match any
+# installed tag for it (Ollama reports fully-tagged names like 'qwen3:latest',
+# so a bare 'qwen3' must still count as present).
+def matches(name):
+    if name == model:
+        return True
+    if ':' not in model and name.split(':', 1)[0] == model:
+        return True
+    return False
+sys.exit(0 if any(matches(n) for n in names) else 1)
 " 2>/dev/null
 }
 
