@@ -195,4 +195,17 @@ describe('gstack-config set (portability)', () => {
     expect(config(['get', 'provider_mode']).stdout).toBe('hybrid');
     expect(config(['get', 'existing']).stdout).toBe('yes');
   });
+
+  test('get preserves colon-bearing and spaced values', () => {
+    mkdirSync(stateDir, { recursive: true });
+    writeFileSync(join(stateDir, 'config.yaml'), [
+      'ollama_base_url: http://localhost:11434',
+      'hybrid_local_tiers: [2, 3]',
+    ].join('\n'));
+
+    // The old `awk '{print $2}'` returned only the first token: a URL kept
+    // its colons by luck of no space, but "[2, 3]" truncated to "[2,".
+    expect(config(['get', 'ollama_base_url']).stdout).toBe('http://localhost:11434');
+    expect(config(['get', 'hybrid_local_tiers']).stdout).toBe('[2, 3]');
+  });
 });

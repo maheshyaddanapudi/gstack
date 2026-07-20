@@ -16,7 +16,12 @@ CONFIG_FILE="$STATE_DIR/config.yaml"
 case "${1:-}" in
   get)
     KEY="${2:?Usage: gstack-config get <key>}"
-    grep -E "^${KEY}:" "$CONFIG_FILE" 2>/dev/null | tail -1 | awk '{print $2}' | tr -d '[:space:]' || true
+    # Everything after the first colon, trimmed. `cut -f2-` rejoins later fields
+    # with ':' so URL values (http://host:port) survive, and we only trim the
+    # ends — the old `awk '{print $2}'` returned just the first token, truncating
+    # any spaced value like "[2, 3]" to "[2,".
+    grep -E "^${KEY}:" "$CONFIG_FILE" 2>/dev/null | tail -1 \
+      | cut -d: -f2- | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' || true
     ;;
   set)
     KEY="${2:?Usage: gstack-config set <key> <value>}"
