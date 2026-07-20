@@ -885,7 +885,7 @@ describe('Sessions', () => {
   });
 
   test('session-close removes a session and rejects unknown/last', async () => {
-    const nowActive = await bm.closeSession('alice');
+    const { nowActive } = await bm.closeSession('alice');
     expect(nowActive).toBeNull(); // closed a non-active session
     expect(bm.listSessions().length).toBe(1);
 
@@ -896,9 +896,45 @@ describe('Sessions', () => {
   test('closing the active session falls back to default', async () => {
     await bm.switchSession('temp');
     expect(bm.getActiveSessionName()).toBe('temp');
-    const nowActive = await bm.closeSession('temp');
+    const { nowActive } = await bm.closeSession('temp');
     expect(nowActive).toBe('default');
     expect(bm.getActiveSessionName()).toBe('default');
+  });
+
+  test('recording session saves a .webm on close', async () => {
+    const videosBase = fs.mkdtempSync(path.join(os.tmpdir(), 'browse-videos-'));
+    const prevVideosDir = bm.videosDir;
+    bm.videosDir = videosBase;
+
+    try {
+      await bm.switchSession('rec', { record: true });
+      expect(bm.listSessions().find(s => s.name === 'rec')?.recording).toBe(true);
+
+      await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+      await handleWriteCommand('click', ['a'], bm).catch(() => {});
+
+      const { videos } = await bm.closeSession('rec');
+      expect(videos.length).toBeGreaterThan(0);
+      for (const v of videos) {
+        expect(v.endsWith('.webm')).toBe(true);
+        expect(fs.statSync(v).size).toBeGreaterThan(0);
+      }
+    } finally {
+      bm.videosDir = prevVideosDir;
+      fs.rmSync(videosBase, { recursive: true, force: true });
+    }
+  }, 30000);
+
+  test('recording requires videosDir and cannot retrofit an existing session', async () => {
+    const prevVideosDir = bm.videosDir;
+    bm.videosDir = null;
+    await expect(bm.switchSession('rec2', { record: true })).rejects.toThrow('not configured');
+    bm.videosDir = prevVideosDir ?? '/tmp/browse-videos-test';
+
+    await bm.switchSession('plain');
+    await bm.switchSession('default');
+    await expect(bm.switchSession('plain', { record: true })).rejects.toThrow('without recording');
+    await bm.closeSession('plain');
   });
 
   test('invalid session names are rejected', async () => {

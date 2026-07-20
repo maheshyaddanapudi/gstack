@@ -33,6 +33,8 @@ interface SessionRecord {
   nextTabId: number;
   refMap: Map<string, RefEntry>;
   lastSnapshot: string | null;
+  /** Set when the session records video — the directory .webm files land in */
+  recordingDir: string | null;
 }
 
 export interface BrowserState {
@@ -55,6 +57,9 @@ export class BrowserManager {
 
   /** Server port — set after server starts, used by cookie-import-browser command */
   public serverPort: number = 0;
+
+  /** Base directory for session video recordings — set by the server at startup */
+  public videosDir: string | null = null;
 
   // ─── Ref Map (snapshot → @e1, @e2, @c1, @c2, ...) ────────
   private refMap: Map<string, RefEntry> = new Map();
@@ -235,6 +240,7 @@ export class BrowserManager {
       nextTabId: this.nextTabId,
       refMap: this.refMap,
       lastSnapshot: this.lastSnapshot,
+      recordingDir: null,
     });
   }
 
@@ -267,7 +273,7 @@ export class BrowserManager {
    * separate cookies/storage/history) if it doesn't exist.
    * Returns true if the session was created, false if it already existed.
    */
-  async switchSession(name: string): Promise<boolean> {
+  async switchSession(name: string, opts?: { record?: boolean }): Promise<boolean> {
     if (this.connectionMode === 'headed') {
       throw new Error('Sessions are unavailable in headed mode (single persistent context)');
     }
@@ -281,6 +287,10 @@ export class BrowserManager {
 
     const existing = this.sessions.get(name);
     if (existing) {
+      // Recording is a context-creation option — it can't be retrofitted
+      if (opts?.record && !existing.recordingDir) {
+        throw new Error(`Session '${name}' already exists without recording — close it first or pick a new name`);
+      }
       this.activateSessionRecord(name, existing);
       return false;
     }
@@ -290,6 +300,15 @@ export class BrowserManager {
     };
     if (this.customUserAgent) {
       contextOptions.userAgent = this.customUserAgent;
+    }
+    let recordingDir: string | null = null;
+    if (opts?.record) {
+      if (!this.videosDir) throw new Error('Video recording unavailable — videos directory not configured');
+      recordingDir = `${this.videosDir}/${name}`;
+      contextOptions.recordVideo = {
+        dir: recordingDir,
+        size: { width: 1280, height: 720 },
+      };
     }
     const context = await this.browser.newContext(contextOptions);
     if (Object.keys(this.extraHeaders).length > 0) {
@@ -303,6 +322,7 @@ export class BrowserManager {
       nextTabId: 1,
       refMap: new Map(),
       lastSnapshot: null,
+      recordingDir,
     };
     this.sessions.set(name, rec);
     this.activateSessionRecord(name, rec);
@@ -315,7 +335,7 @@ export class BrowserManager {
    * cannot be closed. If the active session is closed, switches to 'default'
    * (or the first remaining session) and returns the new active name.
    */
-  async closeSession(name: string): Promise<string | null> {
+  async closeSession(name: string): Promise<{ nowActive: string | null; videos: string[] }> {
     if (this.connectionMode === 'headed') {
       throw new Error('Sessions are unavailable in headed mode (single persistent context)');
     }
@@ -328,26 +348,37 @@ export class BrowserManager {
     const closingActive = name === this.activeSessionName;
     if (closingActive) this.stashActiveSession();
 
+    // Grab video handles before close — files are finalized by context.close()
+    const videoHandles = rec.recordingDir
+      ? [...rec.pages.values()].map(p => p.video()).filter(v => v !== null)
+      : [];
+
     this.sessions.delete(name);
     await rec.context.close().catch(() => {});
+
+    const videos: string[] = [];
+    for (const v of videoHandles) {
+      try { videos.push(await v!.path()); } catch { /* page closed before recording started */ }
+    }
 
     if (closingActive) {
       const nextName = this.sessions.has('default')
         ? 'default'
         : [...this.sessions.keys()][0];
       this.activateSessionRecord(nextName, this.sessions.get(nextName)!);
-      return nextName;
+      return { nowActive: nextName, videos };
     }
-    return null;
+    return { nowActive: null, videos };
   }
 
   /** List all sessions with tab counts, active session first-marked */
-  listSessions(): Array<{ name: string; tabs: number; active: boolean }> {
+  listSessions(): Array<{ name: string; tabs: number; active: boolean; recording: boolean }> {
     this.stashActiveSession();
     return [...this.sessions.entries()].map(([name, rec]) => ({
       name,
       tabs: rec.pages.size,
       active: name === this.activeSessionName,
+      recording: rec.recordingDir !== null,
     }));
   }
 

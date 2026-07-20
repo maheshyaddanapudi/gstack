@@ -1112,6 +1112,7 @@ async function start() {
   fs.renameSync(tmpFile, config.stateFile);
 
   browserManager.serverPort = port;
+  browserManager.videosDir = path.join(config.stateDir, 'videos');
   console.log(`[browse] Server running on http://127.0.0.1:${port} (PID: ${process.pid})`);
   console.log(`[browse] State file: ${config.stateFile}`);
   console.log(`[browse] Idle timeout: ${IDLE_TIMEOUT_MS / 1000}s`);

@@ -502,8 +502,9 @@ Snapshot:       snapshot [-i] [-c] [-d N] [-s sel] [-D] [-a] [-o path] [-C]
 Compare:        diff <url1> <url2>
 Multi-step:     chain (reads JSON from stdin)
 Tabs:           tabs | tab <id> | newtab [url] | closetab [id]
-Sessions:       sessions | session <name> | session-close <name>
-                (each session = isolated cookies/storage/history)
+Sessions:       sessions | session <name> [--record] | session-close <name>
+                (each session = isolated cookies/storage/history;
+                 --record saves .webm video, path printed on close)
 Server:         status | cookie <n>=<v> | header <n>:<v>
                 useragent <str> | stop | restart
 Dialogs:        dialog-accept [text] | dialog-dismiss

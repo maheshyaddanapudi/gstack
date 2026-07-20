@@ -81,24 +81,31 @@ export async function handleMetaCommand(
     // ─── Sessions ──────────────────────────────────────
     case 'sessions': {
       return bm.listSessions().map(s =>
-        `${s.active ? '→ ' : '  '}${s.name} (${s.tabs} tab${s.tabs === 1 ? '' : 's'})`
+        `${s.active ? '→ ' : '  '}${s.name} (${s.tabs} tab${s.tabs === 1 ? '' : 's'})${s.recording ? ' [recording]' : ''}`
       ).join('\n');
     }
 
     case 'session': {
-      const name = args[0];
-      if (!name) throw new Error('Usage: browse session <name>');
+      const record = args.includes('--record');
+      const name = args.filter(a => a !== '--record')[0];
+      if (!name) throw new Error('Usage: browse session <name> [--record]');
       const wasActive = bm.getActiveSessionName() === name;
-      const created = await bm.switchSession(name);
-      if (created) return `Created session '${name}' (isolated cookies/storage)`;
+      const created = await bm.switchSession(name, { record });
+      if (created) {
+        return record
+          ? `Created session '${name}' (isolated cookies/storage, recording video)`
+          : `Created session '${name}' (isolated cookies/storage)`;
+      }
       return wasActive ? `Already on session '${name}'` : `Switched to session '${name}'`;
     }
 
     case 'session-close': {
       const name = args[0];
       if (!name) throw new Error('Usage: browse session-close <name>');
-      const nowActive = await bm.closeSession(name);
-      return `Closed session '${name}'${nowActive ? ` — now on '${nowActive}'` : ''}`;
+      const { nowActive, videos } = await bm.closeSession(name);
+      const lines = [`Closed session '${name}'${nowActive ? ` — now on '${nowActive}'` : ''}`];
+      for (const v of videos) lines.push(`Video saved: ${v}`);
+      return lines.join('\n');
     }
 
     // ─── Server Control ────────────────────────────────

@@ -96,8 +96,8 @@ export const COMMAND_DESCRIPTIONS: Record<string, { category: string; descriptio
   'closetab':{ category: 'Tabs', description: 'Close tab', usage: 'closetab [id]' },
   // Sessions
   'sessions': { category: 'Sessions', description: 'List browser sessions (isolated cookies/storage per session)' },
-  'session':  { category: 'Sessions', description: 'Switch to named session, creating an isolated browser context (own cookies/storage/history) if new. Useful for testing multiple user roles in parallel', usage: 'session <name>' },
-  'session-close': { category: 'Sessions', description: 'Close a session and its browser context', usage: 'session-close <name>' },
+  'session':  { category: 'Sessions', description: 'Switch to named session, creating an isolated browser context (own cookies/storage/history) if new. --record captures video of the session (.webm, reported on session-close). Useful for testing multiple user roles in parallel', usage: 'session <name> [--record]' },
+  'session-close': { category: 'Sessions', description: 'Close a session and its browser context. Prints saved video paths for recording sessions', usage: 'session-close <name>' },
   // Server
   'status':  { category: 'Server', description: 'Health check' },
   'stop':    { category: 'Server', description: 'Shutdown server' },

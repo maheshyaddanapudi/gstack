@@ -36,17 +36,16 @@ May replace `/setup-browser-cookies` for most use cases since the user's real co
 
 ## Browse
 
-### Video recording
+### Video recording — V1 SHIPPED
 
-**What:** Record browser interactions as video (start/stop controls).
+~~**What:** Record browser interactions as video (start/stop controls).~~
 
-**Why:** Video evidence in QA reports and PR bodies. Currently deferred because `recreateContext()` destroys page state.
+`$B session <name> --record` ships with sessions: the session's context records
+.webm video (1280x720), and `session-close` prints the saved file paths.
 
-**Context:** Needs sessions for clean context lifecycle. Playwright supports video recording per context. Also needs WebM → GIF conversion for PR embedding.
-
-**Effort:** M
+**Remaining:** WebM → GIF conversion for PR embedding (needs ffmpeg).
+**Effort:** S
 **Priority:** P3
-**Depends on:** Sessions
 
 ### v20 encryption format support
 

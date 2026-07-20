@@ -495,8 +495,8 @@ Refs are invalidated on navigation — run `snapshot` again after `goto`.
 ### Sessions
 | Command | Description |
 |---------|-------------|
-| `session <name>` | Switch to named session, creating an isolated browser context (own cookies/storage/history) if new. Useful for testing multiple user roles in parallel |
-| `session-close <name>` | Close a session and its browser context |
+| `session <name> [--record]` | Switch to named session, creating an isolated browser context (own cookies/storage/history) if new. --record captures video of the session (.webm, reported on session-close). Useful for testing multiple user roles in parallel |
+| `session-close <name>` | Close a session and its browser context. Prints saved video paths for recording sessions |
 | `sessions` | List browser sessions (isolated cookies/storage per session) |
 
 ### Server
