@@ -720,7 +720,10 @@ async function shutdown() {
   clearInterval(idleCheckInterval);
   await flushBuffers(); // Final flush (async now)
 
-  await browserManager.close();
+  const recordedVideos = await browserManager.close();
+  for (const v of recordedVideos) {
+    console.log(`[browse] Video saved: ${v}`);
+  }
 
   // Clean up Chromium profile locks (prevent SingletonLock on next launch)
   const profileDir = path.join(process.env.HOME || '/tmp', '.gstack', 'chromium-profile');

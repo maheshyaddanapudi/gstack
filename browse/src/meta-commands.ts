@@ -127,15 +127,22 @@ export async function handleMetaCommand(
     }
 
     case 'stop': {
-      // Defer shutdown so the HTTP response reaches the client before the
-      // process exits — shutdown() ends in process.exit(0).
+      // Finalize any recordings now so their paths can be reported in THIS
+      // response (the server's own shutdown logging goes to a detached stdout
+      // the user never sees). Then defer shutdown so the response flushes
+      // before process.exit(0).
+      const videos = await bm.finalizeRecordings();
       setTimeout(() => { void shutdown(); }, 100);
-      return 'Server stopped';
+      const lines = ['Server stopped'];
+      for (const v of videos) lines.push(`Video saved: ${v}`);
+      return lines.join('\n');
     }
 
     case 'restart': {
-      // Signal that we want a restart — the CLI will detect exit and restart
-      console.log('[browse] Restart requested. Exiting for CLI to restart.');
+      // Normally the CLI intercepts `restart` before it reaches the server
+      // (kill + fresh start). This handler only runs on a direct HTTP POST;
+      // it shuts the server down (the CLI's ensureServer restarts lazily).
+      console.log('[browse] Restart requested. Shutting down.');
       setTimeout(() => { void shutdown(); }, 100);
       return 'Restarting...';
     }

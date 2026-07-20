@@ -503,7 +503,13 @@ export class BrowserManager {
     this.consecutiveFailures = 0;
   }
 
-  async close() {
+  /**
+   * Shut down the browser. Returns paths of any finalized session recordings
+   * so the caller (server shutdown) can report where videos landed — otherwise
+   * a `stop` after recording leaves the user with no idea the files exist.
+   */
+  async close(): Promise<string[]> {
+    const videos: string[] = [];
     if (this.browser || (this.connectionMode === 'headed' && this.context)) {
       if (this.connectionMode === 'headed') {
         // Headed/persistent context mode: close the context (which closes the browser)
@@ -514,15 +520,44 @@ export class BrowserManager {
           new Promise(resolve => setTimeout(resolve, 5000)),
         ]).catch(() => {});
       } else {
-        // Launched mode: close the browser we spawned
-        this.browser.removeAllListeners('disconnected');
+        this.browser!.removeAllListeners('disconnected');
+
+        // Finalize recordings FIRST, awaited without the 5s race —
+        // browser.close()'s race cap can otherwise kill Chromium mid-finalize
+        // and truncate a long .webm.
+        videos.push(...await this.finalizeRecordings());
+
+        // Close whatever remains (non-recording contexts + the browser)
         await Promise.race([
-          this.browser.close(),
+          this.browser!.close(),
           new Promise(resolve => setTimeout(resolve, 5000)),
         ]).catch(() => {});
       }
       this.browser = null;
     }
+    return videos;
+  }
+
+  /**
+   * Close every recording session's context (awaited, no race cap so long
+   * videos finalize fully) and return the saved .webm paths. Idempotent —
+   * once a session's recordingDir is cleared it's skipped, so calling this
+   * from both the stop handler and close() is safe.
+   */
+  async finalizeRecordings(): Promise<string[]> {
+    if (this.connectionMode === 'headed') return [];
+    this.stashActiveSession();
+    const videos: string[] = [];
+    for (const [, rec] of this.sessions) {
+      if (!rec.recordingDir) continue;
+      const handles = [...rec.pages.values()].map(p => p.video()).filter(v => v !== null);
+      await rec.context.close().catch(() => {});
+      rec.recordingDir = null; // mark finalized so a later close() skips it
+      for (const v of handles) {
+        try { videos.push(await v!.path()); } catch { /* never recorded */ }
+      }
+    }
+    return videos;
   }
 
   /** Health check — verifies Chromium is connected AND responsive */
@@ -880,6 +915,10 @@ export class BrowserManager {
       // 4. Restore state
       await this.restoreState(state);
 
+      // Sync the active session record to the new context/pages so it never
+      // holds a reference to the context we just closed.
+      this.stashActiveSession();
+
       return null; // success
     } catch (err: unknown) {
       // Fallback: create a clean context + blank tab
@@ -896,6 +935,7 @@ export class BrowserManager {
         this.context = await this.browser!.newContext(contextOptions);
         await this.newTab();
         this.clearRefs();
+        this.stashActiveSession(); // keep the session record off the closed context
       } catch {
         // If even the fallback fails, we're in trouble — but browser is still alive
       }
