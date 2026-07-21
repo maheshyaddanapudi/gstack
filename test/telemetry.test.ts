@@ -243,6 +243,57 @@ describe('gstack-analytics', () => {
   });
 });
 
+describe('gstack-telemetry-sync cursor advancement', () => {
+  // A fake `curl` on PATH returns HTTP 200 + {"inserted":1} and appends each
+  // request body to a log — exercises the 2xx cursor-advance path without a
+  // real socket (localhost sockets are blocked in the sandbox/CI).
+  function installFakeCurl(): { binDir: string; batchLog: string } {
+    const binDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-fakebin-'));
+    const batchLog = path.join(binDir, 'batches.log');
+    const script = [
+      '#!/usr/bin/env bash',
+      'out=""; prev=""; data=""',
+      'for a in "$@"; do',
+      '  if [ "$prev" = "-o" ]; then out="$a"; fi',
+      '  if [ "$prev" = "-d" ]; then data="$a"; fi',
+      '  prev="$a"',
+      'done',
+      `printf '%s\\n' "$data" >> ${JSON.stringify(batchLog)}`,
+      '[ -n "$out" ] && printf \'{"inserted":1}\' > "$out"',
+      "printf '200'",
+    ].join('\n');
+    fs.writeFileSync(path.join(binDir, 'curl'), script, { mode: 0o755 });
+    return { binDir, batchLog };
+  }
+
+  test('does not re-send events when a blank line precedes valid ones', () => {
+    setConfig('telemetry', 'anonymous');
+    const { binDir, batchLog } = installFakeCurl();
+    try {
+      const analyticsDir = path.join(tmpDir, 'analytics');
+      fs.mkdirSync(analyticsDir, { recursive: true });
+      const jsonl = path.join(analyticsDir, 'skill-usage.jsonl');
+      const e1 = '{"v":1,"ts":"2026-07-20T10:00:00Z","event_type":"skill_run","skill":"qa","outcome":"success"}';
+      const e2 = '{"v":1,"ts":"2026-07-20T10:01:00Z","event_type":"skill_run","skill":"ship","outcome":"success"}';
+      fs.writeFileSync(jsonl, `${e1}\n\n${e2}\n`); // 3 lines: valid, BLANK, valid
+
+      const env = { PATH: `${binDir}:${process.env.PATH}`, GSTACK_SUPABASE_URL: 'http://telemetry.invalid', GSTACK_SUPABASE_ANON_KEY: 'k' };
+      run(`${BIN}/gstack-telemetry-sync`, env);
+      // Cursor must advance past all 3 consumed lines, not just the 2 valid events.
+      expect(fs.readFileSync(path.join(analyticsDir, '.last-sync-line'), 'utf-8').trim()).toBe('3');
+
+      // Second sync (bypass the 5-min rate limit): nothing new → no extra POST.
+      fs.rmSync(path.join(analyticsDir, '.last-sync-time'), { force: true });
+      const before = fs.existsSync(batchLog) ? fs.readFileSync(batchLog, 'utf-8') : '';
+      run(`${BIN}/gstack-telemetry-sync`, env);
+      const after = fs.existsSync(batchLog) ? fs.readFileSync(batchLog, 'utf-8') : '';
+      expect(after).toBe(before); // no duplicate re-send
+    } finally {
+      fs.rmSync(binDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('gstack-telemetry-sync', () => {
   test('exits silently with no Supabase URL configured', () => {
     // Default: GSTACK_SUPABASE_URL is not set → exit 0

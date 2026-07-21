@@ -72,8 +72,10 @@ UNSENT="$(tail -n "+$SKIP" "$JSONL_FILE" 2>/dev/null || true)"
 BATCH="["
 FIRST=true
 COUNT=0
+LINES=0  # lines consumed from UNSENT (advance cursor by this, NOT COUNT)
 
 while IFS= read -r LINE; do
+  LINES=$(( LINES + 1 ))
   # Skip empty or malformed lines
   [ -z "$LINE" ] && continue
   echo "$LINE" | grep -q '^{' || continue
@@ -123,7 +125,10 @@ case "$HTTP_CODE" in
     # source lines. If inserted==0, something is systemically wrong — don't advance.
     INSERTED="$(grep -o '"inserted":[0-9]*' "$RESP_FILE" 2>/dev/null | grep -o '[0-9]*' || echo "0")"
     if [ "${INSERTED:-0}" -gt 0 ] 2>/dev/null; then
-      NEW_CURSOR=$(( CURSOR + COUNT ))
+      # Advance by LINES consumed (not COUNT of valid events). Blank/malformed
+      # lines are skipped without incrementing COUNT, so using COUNT would leave
+      # the cursor short and re-send the trailing valid lines on the next sync.
+      NEW_CURSOR=$(( CURSOR + LINES ))
       echo "$NEW_CURSOR" > "$CURSOR_FILE" 2>/dev/null || true
     fi
     ;;
