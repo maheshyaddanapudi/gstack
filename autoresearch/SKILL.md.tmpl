@@ -1,0 +1,143 @@
+---
+name: autoresearch
+preamble-tier: 2
+version: 1.0.0
+description: |
+  Autonomous research loop (Karpathy autoresearch, replicated at CPU scale).
+  A remote LLM agent proposes a change, a fast objective function measures it,
+  and the change is KEPT only if the metric improves — otherwise reverted.
+  Two modes: (1) optimize a real ML training metric on a tiny CPU-trainable
+  model, and (2) apply the same propose -> measure -> keep loop to improve any
+  repository (fan out researcher subagents, keep only test-verified fixes).
+  Use when: "run autoresearch", "autonomous improvement loop", "optimize this
+  metric", "have agents keep improving X", "propose-measure-keep".
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Agent
+  - Glob
+  - Grep
+  - AskUserQuestion
+---
+
+{{PREAMBLE}}
+
+# /autoresearch — Autonomous propose → measure → keep loop
+
+You are running a faithful, CPU-scale replica of
+[karpathy/autoresearch](https://github.com/karpathy/autoresearch): an autonomous
+"research org" where an **agent** improves a **workload** by editing it,
+measuring a scalar **objective**, and keeping a change only if the objective
+improves. The insight that makes this runnable anywhere: autoresearch has two
+separate LLMs, and only one ever needs a GPU.
+
+| Role | Upstream autoresearch | Here |
+|------|----------------------|------|
+| **Agent** (does the research) | any coding LLM | a remote **Claude/Anthropic** model — you, or spawned subagents |
+| **Workload** (the thing measured) | nanochat transformer trained on an H100 | a tiny CPU model, OR a whole repository |
+
+The GPU was only ever needed for the *scale* of the trained model. Shrink the
+workload (or swap it for "does the test suite pass?") and the exact loop runs
+with no GPU and nothing faked.
+
+## User-invocable
+When the user types `/autoresearch`, run this skill.
+
+## Arguments
+- `/autoresearch ml` — run the tiny-LM optimization demo (optimize validation
+  loss on a real char-level neural net in `autoresearch-mini/`)
+- `/autoresearch repo [area...]` — run the repo-improvement loop: fan out
+  researcher subagents, each finds ONE test-verified improvement; you keep the
+  survivors
+- `/autoresearch repo --rounds N` — run N sequential rounds until diminishing
+  returns (agents stop finding genuine defects)
+
+## The core contract (both modes)
+
+1. **Propose** — the agent makes one small, single-purpose change.
+2. **Measure** — a fast, deterministic objective function scores it.
+3. **Keep or revert** — keep iff the objective improved; otherwise discard.
+4. **Repeat**, letting each result inform the next hypothesis.
+
+The objective MUST be fast (seconds) and deterministic (fixed seed / green-or-red
+tests) so experiments are comparable. **A null result is a valid, honest outcome
+— never manufacture a marginal change to show "progress."**
+
+---
+
+## Mode 1 — `ml`: optimize a real training metric
+
+The harness lives in `autoresearch-mini/` (see its `README.md` and
+`RESEARCH_LOG.md`). `train.py` is a char-level MLP language model in pure numpy
+(manual backprop + SGD) trained on real text; it prints one metric: `VAL_LOSS`
+(held-out cross-entropy). Each run is ~1.6s and deterministic (fixed seed).
+
+Loop:
+
+```bash
+cd autoresearch-mini
+python3 train.py                      # current config -> VAL_LOSS
+# propose a change: edit train.py's research knobs (block_size, n_embd,
+# n_hidden, learning_rate, batch_size, schedule, init, add a layer, ...)
+# OR sweep via env: AR_BLOCK_SIZE, AR_N_EMBD, AR_N_HIDDEN, AR_LR, AR_BATCH
+AR_N_HIDDEN=256 AR_LR=0.2 python3 train.py   # measure the proposal
+```
+
+Keep the change (bake it into the defaults) only if `VAL_LOSS` dropped. Do NOT
+touch the `# Harness contract` knobs (seed, step budget, val split) — they keep
+experiments comparable, exactly as autoresearch fixes its compute budget.
+
+Record every experiment (hypothesis, val_loss, keep/revert decision) in a log,
+and reason from each result: e.g. more context often needs more capacity to pay
+off under a fixed step budget. Report the metric trajectory at the end.
+
+---
+
+## Mode 2 — `repo`: improve a repository with researcher subagents
+
+This applies the same loop with **the test suite as the objective**. Read
+CLAUDE.md for the project's test command (gstack: `bun test`, fast + free).
+
+### Each round
+
+1. Pick 3–5 **distinct** code areas that have NOT been covered in prior rounds
+   (track covered areas across rounds; never re-assign the same file).
+2. Dispatch one **researcher subagent per area IN A SINGLE MESSAGE** (so they
+   run in parallel), each with `subagent_type: general-purpose` and
+   `isolation: worktree` (they mutate files — isolation prevents conflicts).
+3. Give each researcher this exact contract:
+   - Find exactly ONE genuine, concrete, test-verifiable defect in your area.
+   - A null result (FOUND: no) is acceptable and BETTER than a fake one — do
+     NOT invent a marginal change.
+   - Implement the fix + a regression test that FAILS without it and PASSES
+     with it (verify BOTH directions: revert fix → test fails → restore).
+   - The full suite must stay green.
+   - Report a structured block: FOUND / AREA / SUMMARY / FAILURE_SCENARIO /
+     TESTS / DIFF (the complete `git diff`).
+
+### The keep/revert step (you run this — do NOT trust the agents blindly)
+
+For each researcher that reported FOUND: yes:
+1. **Verify the claim yourself.** If it asserts an external fact (API behavior,
+   a version threshold), confirm it (web search / docs) before applying.
+2. Apply the diff to the main tree (re-implement from the reported diff; the
+   agents' worktrees are throwaway).
+3. Run the FULL objective (`bun test`) — the measure step.
+4. **Keep** (commit, one bisected commit per fix) only if green AND the change
+   is a genuine improvement. **Revert** otherwise.
+
+### Diminishing returns
+
+Stop when a round yields no genuine keepers (all FOUND: no, or all rejected at
+verification). Report the covered areas, the kept fixes, and the round at which
+the signal went dry. Do not pad rounds to hit a number — dryness IS the result.
+
+## Honesty rules (the whole point)
+
+- The objective is the only arbiter. If the metric didn't improve, the change
+  is not kept — no exceptions, no "it's cleaner anyway."
+- Never fabricate a metric, a test result, or a fix. A dry round reported
+  honestly is worth more than a manufactured commit.
+- Every kept change carries a regression test proven to fail without it.

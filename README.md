@@ -172,6 +172,7 @@ Each skill feeds into the next. `/office-hours` writes a design doc that `/plan-
 | `/unfreeze` | **Unlock** — remove the `/freeze` boundary. |
 | `/setup-deploy` | **Deploy Configurator** — one-time setup for `/land-and-deploy`. Detects your platform, production URL, and deploy commands. |
 | `/gstack-upgrade` | **Self-Updater** — upgrade gstack to latest. Detects global vs vendored install, syncs both, shows what changed. |
+| `/autoresearch` | **Autonomous Researcher** — Karpathy's autoresearch loop at CPU scale. A remote LLM agent proposes a change, a fast objective measures it, the change is kept only if the metric improves. Optimizes a real ML training metric, or fans out researcher agents to keep improving a repo (test-verified fixes only). |
 
 **[Deep dives with examples and philosophy for every skill →](docs/skills.md)**
 
