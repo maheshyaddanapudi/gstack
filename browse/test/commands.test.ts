@@ -82,6 +82,15 @@ describe('Content extraction', () => {
     expect(result).not.toContain('<h1>');
   });
 
+  test('text excludes display:none content', async () => {
+    // basic.html has <p class="hidden">This should be hidden.</p> with
+    // .hidden { display: none }. Clean text must respect CSS visibility — a
+    // detached clone's innerText leaks it, so the clone is attached off-screen.
+    const result = await handleReadCommand('text', [], bm);
+    expect(result).toContain('This is a highlighted paragraph.'); // visible sibling
+    expect(result).not.toContain('This should be hidden.');
+  });
+
   test('html returns full page HTML', async () => {
     const result = await handleReadCommand('html', [], bm);
     expect(result).toContain('<!DOCTYPE html>');

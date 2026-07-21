@@ -63,11 +63,23 @@ export async function getCleanText(page: Page | Frame): Promise<string> {
     if (!body) return '';
     const clone = body.cloneNode(true) as HTMLElement;
     clone.querySelectorAll('script, style, noscript, svg').forEach(el => el.remove());
-    return clone.innerText
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .join('\n');
+    // innerText only respects CSS visibility (display:none, visibility:hidden)
+    // for nodes in the live layout tree. A detached clone has no layout, so its
+    // innerText degrades to textContent and leaks hidden text. Attach the clone
+    // off-screen (still rendered) so hidden content is excluded, then remove it.
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:absolute;left:-99999px;top:0';
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+    try {
+      return clone.innerText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('\n');
+    } finally {
+      holder.remove();
+    }
   });
 }
 
