@@ -182,7 +182,12 @@ export function findPreviousRun(
 ): string | null {
   let files: string[];
   try {
-    files = fs.readdirSync(evalDir).filter(f => f.endsWith('.json'));
+    // Skip incremental snapshots (`_partial-e2e.json`). They live in the same
+    // dir as finalized runs but hold the CURRENT run's in-progress data, so a
+    // partial always has a newer timestamp than any real prior run and would be
+    // wrongly picked as "the previous run" — making finalize() auto-compare a
+    // run against its own snapshot and mask genuine regressions.
+    files = fs.readdirSync(evalDir).filter(f => f.endsWith('.json') && !f.startsWith('_partial'));
   } catch {
     return null; // dir doesn't exist
   }
@@ -197,6 +202,7 @@ export function findPreviousRun(
       // Quick parse — only grab the fields we need
       const data = JSON.parse(raw);
       if (data.tier !== tier) continue;
+      if (data._partial) continue; // defense-in-depth: never compare against an in-progress snapshot
       entries.push({ file: fullPath, branch: data.branch || '', timestamp: data.timestamp || '' });
     } catch { continue; }
   }

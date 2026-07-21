@@ -268,6 +268,28 @@ describe('findPreviousRun', () => {
     const result = findPreviousRun(tmpDir, 'e2e', 'main', 'current.json');
     expect(result).toBeNull(); // only llm-judge file, looking for e2e
   });
+
+  test('ignores the in-progress _partial snapshot', () => {
+    // A real finalized prior run (older timestamp).
+    fs.writeFileSync(
+      path.join(tmpDir, '0.3.5-main-e2e-20260101-100000.json'),
+      JSON.stringify(makeResult({ branch: 'main', timestamp: '2026-01-01T10:00:00Z' })),
+    );
+    // The current run's in-progress partial snapshot: same dir, NEWER timestamp,
+    // same tier+branch. It must never be selected as the "previous run" —
+    // otherwise finalize() compares a run against itself and masks regressions.
+    fs.writeFileSync(
+      path.join(tmpDir, '_partial-e2e.json'),
+      JSON.stringify(makeResult({ branch: 'main', timestamp: '2026-07-21T10:00:00Z', _partial: true })),
+    );
+
+    const result = findPreviousRun(
+      tmpDir, 'e2e', 'main',
+      path.join(tmpDir, '0.3.6-main-e2e-20260721-100001.json'), // the new final file
+    );
+    expect(result).not.toBeNull();
+    expect(path.basename(result!)).toBe('0.3.5-main-e2e-20260101-100000.json');
+  });
 });
 
 // --- compareEvalResults tests ---
