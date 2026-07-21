@@ -200,8 +200,15 @@ export async function handleWriteCommand(
 
     case 'viewport': {
       const size = args[0];
-      if (!size || !size.includes('x')) throw new Error('Usage: browse viewport <WxH> (e.g., 375x812)');
-      const [w, h] = size.split('x').map(Number);
+      const parts = size ? size.split('x') : [];
+      const w = Number(parts[0]);
+      const h = Number(parts[1]);
+      // Reject malformed input: exactly two positive integers required. Without
+      // this, `375x` → Number('') → 0, silently setting a broken 375x0 viewport;
+      // `375xabc` → NaN → cryptic Playwright error instead of usage guidance.
+      if (parts.length !== 2 || !Number.isInteger(w) || !Number.isInteger(h) || w <= 0 || h <= 0) {
+        throw new Error('Usage: browse viewport <WxH> (e.g., 375x812)');
+      }
       await bm.setViewport(w, h);
       return `Viewport set to ${w}x${h}`;
     }

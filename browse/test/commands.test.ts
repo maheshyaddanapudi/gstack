@@ -1269,6 +1269,24 @@ describe('Element state checks', () => {
       expect(err.message).toContain('Usage');
     }
   });
+
+  test('viewport with missing/malformed dimension throws instead of silently using 0', async () => {
+    // Regression: `Number('')` is 0, so `375x` used to silently set a 375x0
+    // viewport and `x812` a 0x812 one; `375xabc` threw a cryptic Playwright
+    // NaN error. All malformed inputs should now give a clear Usage error.
+    for (const bad of ['375x', 'x812', '375xabc', '100x200x300', '375.5x812']) {
+      let threw = false;
+      let result = '';
+      try {
+        result = await handleWriteCommand('viewport', [bad], bm);
+      } catch (err: any) {
+        threw = true;
+        expect(err.message).toContain('Usage');
+      }
+      if (!threw) throw new Error(`viewport ${bad} should have thrown but returned: ${result}`);
+    }
+    await handleWriteCommand('viewport', ['1280x720'], bm); // restore for later tests
+  });
 });
 
 // ─── File Upload ─────────────────────────────────────────────────
