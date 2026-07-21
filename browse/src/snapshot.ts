@@ -182,16 +182,20 @@ export async function handleSnapshot(
     const depth = Math.floor(node.indent / 2);
     const isInteractive = INTERACTIVE_ROLES.has(node.role);
 
+    // Advance the nth() disambiguation counter for EVERY parsed node, before
+    // any filter can `continue`. getByRole matches all elements on the page in
+    // DOM order regardless of which nodes we hide, so a node skipped by a filter
+    // must still consume its index — otherwise a later shown node with the same
+    // role+name gets an nth() that points at the skipped (wrong) element.
+    const key = `${node.role}:${node.name || ''}`;
+    const seenIndex = roleNameSeen.get(key) || 0;
+    roleNameSeen.set(key, seenIndex + 1);
+
     // Depth filter
     if (opts.depth !== undefined && depth > opts.depth) continue;
 
-    // Interactive filter: skip non-interactive but still count for locator indices
-    if (opts.interactive && !isInteractive) {
-      // Still track for nth() counts
-      const key = `${node.role}:${node.name || ''}`;
-      roleNameSeen.set(key, (roleNameSeen.get(key) || 0) + 1);
-      continue;
-    }
+    // Interactive filter: skip non-interactive elements
+    if (opts.interactive && !isInteractive) continue;
 
     // Compact filter: skip elements with no name and no inline content that aren't interactive
     if (opts.compact && !isInteractive && !node.name && !node.children) continue;
@@ -201,9 +205,6 @@ export async function handleSnapshot(
     const indent = '  '.repeat(depth);
 
     // Build Playwright locator
-    const key = `${node.role}:${node.name || ''}`;
-    const seenIndex = roleNameSeen.get(key) || 0;
-    roleNameSeen.set(key, seenIndex + 1);
     const totalCount = roleNameCounts.get(key) || 1;
 
     let locator: Locator;

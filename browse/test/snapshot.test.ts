@@ -451,6 +451,24 @@ describe('Snapshot combined flags', () => {
     expect(result).not.toContain('[heading]');
   });
 
+  test('filtered-out duplicate does not misalign nth() refs', async () => {
+    // depth-dup.html has two buttons named "Go": a DEEP one (first in DOM,
+    // inside nav>ul>li) and a SHALLOW one (second in DOM, direct child of body).
+    // With -d 1 the deep button is hidden by the depth filter, but getByRole
+    // still matches BOTH in DOM order. The shown shallow button must resolve to
+    // nth(1) — the bug (hidden node not advancing the counter) made it resolve
+    // to nth(0) = the wrong deep button.
+    await handleWriteCommand('goto', [baseUrl + '/depth-dup.html'], bm);
+    const snap = await handleMetaCommand('snapshot', ['-d', '1'], bm, shutdown);
+    const buttonLine = snap.split('\n').find(l => l.includes('[button]') && l.includes('"Go"'));
+    expect(buttonLine).toBeDefined();
+    const ref = `@${buttonLine!.match(/@(e\d+)/)![1]}`;
+    const attrs = await handleReadCommand('attrs', [ref], bm);
+    // The visible ref must resolve to the shallow button, not the hidden deep one.
+    expect(attrs).toContain('shallow-go');
+    expect(attrs).not.toContain('deep-go');
+  });
+
   test('closetab last tab auto-creates new', async () => {
     // Get down to 1 tab
     const tabs = await bm.getTabListWithTitles();
