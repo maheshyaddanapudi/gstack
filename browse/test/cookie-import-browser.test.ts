@@ -443,6 +443,27 @@ describe('Cookie Import Browser', () => {
       expect(out).toBe('legacy-v10');
     });
 
+    test('stripDomainHash=false keeps the full value (pre-v24 DB, no prefix)', () => {
+      // Encrypt WITHOUT the 32-byte domain-hash prefix — the on-disk format for
+      // cookie DBs with schema version <= 23 (Chrome < ~130). The old code
+      // unconditionally stripped 32 bytes and corrupted these values.
+      const raw = 'auth=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const plaintext = Buffer.from(raw, 'utf-8');
+      const blockSize = 16;
+      const padLen = blockSize - (plaintext.length % blockSize);
+      const padded = Buffer.concat([plaintext, Buffer.alloc(padLen, padLen)]);
+      const cipher = crypto.createCipheriv('aes-128-cbc', TEST_KEY, IV);
+      cipher.setAutoPadding(false);
+      const ev = Buffer.concat([Buffer.from('v10'), cipher.update(padded), cipher.final()]);
+      const row = { value: '', encrypted_value: ev } as any;
+
+      // Without stripping (v23 DB): full value preserved.
+      expect(decryptCookieValue(row, new Map([['v10', TEST_KEY]]), false)).toBe(raw);
+      // With stripping (v24+ DB, default): first 32 bytes removed — proves the
+      // flag actually gates the behavior and the old default would have corrupted it.
+      expect(decryptCookieValue(row, new Map([['v10', TEST_KEY]]), true)).toBe(raw.slice(32));
+    });
+
     test('missing key for a prefix throws a clear error', () => {
       const ev = encryptV20('x');
       const row = { value: '', encrypted_value: ev } as any;

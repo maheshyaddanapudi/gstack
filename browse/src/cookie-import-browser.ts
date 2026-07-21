@@ -254,6 +254,9 @@ export async function importCookies(
   const db = openDb(match.dbPath, browser.name);
 
   try {
+    // Read the DB schema version ONCE: it decides whether decrypted payloads
+    // carry the 32-byte SHA256(host_key) prefix (v24+ only).
+    const stripDomainHash = shouldStripDomainHash(db);
     const now = chromiumNow();
     // Parameterized query — no SQL injection
     const placeholders = domains.map(() => '?').join(',');
@@ -272,7 +275,7 @@ export async function importCookies(
 
     for (const row of rows) {
       try {
-        const value = decryptCookieValue(row, derivedKeys);
+        const value = decryptCookieValue(row, derivedKeys, stripDomainHash);
         const cookie = toPlaywrightCookie(row, value);
         cookies.push(cookie);
         domainCounts[row.host_key] = (domainCounts[row.host_key] || 0) + 1;
@@ -571,7 +574,7 @@ export interface RawCookie {
 
 // Exported for unit testing the decryption primitives (v10/v11 CBC, v20 GCM)
 // directly — key *derivation* is OS-specific and covered by the profile tests.
-export function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>): string {
+export function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>, stripDomainHash = true): string {
   // Prefer unencrypted value if present
   if (row.value && row.value.length > 0) return row.value;
 
@@ -607,10 +610,33 @@ export function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>): s
     plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   }
 
-  // Chromium prefixes encrypted cookie payloads with 32 bytes of metadata
-  // (a SHA-256 domain hash) in both the CBC and app-bound GCM formats.
+  // Chromium prepends a 32-byte SHA-256(host_key) hash to the plaintext only at
+  // cookie DB schema version >= 24 (Chrome ~130+), for both the CBC and
+  // app-bound GCM formats. Older DBs (<= 23) store the value with no prefix, so
+  // stripping there would corrupt it (or wipe values shorter than 32 bytes).
+  if (!stripDomainHash) return plaintext.toString('utf-8');
   if (plaintext.length <= 32) return '';
   return plaintext.slice(32).toString('utf-8');
+}
+
+/**
+ * Decide whether decrypted payloads carry the 32-byte SHA256(host_key) prefix.
+ * Chromium began prepending it at cookie DB schema version 24 (Chrome ~130). If
+ * the version can't be read (no meta table — e.g. a synthetic/partial DB),
+ * default to stripping, matching current-generation browsers.
+ */
+function shouldStripDomainHash(db: Database): boolean {
+  try {
+    const row = db.query(`SELECT value FROM meta WHERE key = 'version'`).get() as
+      | { value: string | number | bigint }
+      | undefined;
+    if (!row || row.value === undefined || row.value === null) return true;
+    const version = typeof row.value === 'string' ? parseInt(row.value, 10) : Number(row.value);
+    if (!Number.isFinite(version)) return true;
+    return version >= 24;
+  } catch {
+    return true; // no meta table or unreadable — assume modern format
+  }
 }
 
 function toPlaywrightCookie(row: RawCookie, value: string): PlaywrightCookie {
