@@ -171,9 +171,12 @@ export function getActivityAfter(afterId: number): {
     return { entries: allEntries, gap: false, totalAdded: total };
   }
 
-  // Check for gap: if afterId is too old and has been evicted
+  // Check for gap: only if the client's NEXT-needed entry (afterId + 1) has
+  // itself been evicted. When afterId === oldestId - 1 the client is still in
+  // sync — the next entry it needs (oldestId) is present, so there is no gap.
+  // (Ids are contiguous: every entry gets id = nextId++.)
   const oldestId = allEntries.length > 0 ? allEntries[0].id : nextId;
-  if (afterId < oldestId) {
+  if (afterId + 1 < oldestId) {
     return {
       entries: allEntries,
       gap: true,

@@ -80,6 +80,27 @@ describe('getActivityAfter', () => {
     const result = getActivityAfter(0);
     expect(result.entries.length).toBeGreaterThan(0);
   });
+
+  it('does NOT report a gap when the cursor points just before the oldest retained entry', () => {
+    // Overflow the ring buffer (capacity 1000) so the oldest entries are evicted.
+    for (let i = 0; i < 1100; i++) {
+      emitActivity({ type: 'command_start', command: `overflow-${i}` });
+    }
+    const all = getActivityAfter(0);
+    const oldestId = all.entries[0].id;
+
+    // Client's last-seen entry (oldestId - 1) was just evicted, but the NEXT
+    // entry it needs (oldestId) is still present → no gap.
+    const boundary = getActivityAfter(oldestId - 1);
+    expect(boundary.gap).toBe(false);
+    expect(boundary.entries.some(e => e.id === oldestId)).toBe(true);
+
+    // One further back IS a genuine gap: entry (oldestId - 1) is evicted.
+    const genuine = getActivityAfter(oldestId - 2);
+    expect(genuine.gap).toBe(true);
+    expect(genuine.gapFrom).toBe(oldestId - 1);
+    expect(genuine.availableFrom).toBe(oldestId);
+  });
 });
 
 describe('getActivityHistory', () => {
