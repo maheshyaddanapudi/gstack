@@ -239,6 +239,34 @@ describe('WorktreeManager', () => {
     expect(fs.existsSync(oldRunDir)).toBe(false);
   });
 
+  test('pruneStale() also removes leaked git worktree registrations', () => {
+    const repo = createTestRepo();
+    repos.push(repo);
+
+    // Previous run: create a worktree and DON'T clean it up (both the directory
+    // and git's admin entry present, as after a crash).
+    const oldMgr = new WorktreeManager(repo);
+    const oldPath = oldMgr.create('stale-registered');
+    expect(fs.existsSync(oldPath)).toBe(true);
+
+    const listBefore = spawnSync('git', ['worktree', 'list', '--porcelain'], { cwd: repo, stdio: 'pipe' })
+      .stdout.toString();
+    expect(listBefore).toContain(oldPath);
+
+    // New run prunes stale worktrees. Pruning must happen AFTER the dir is
+    // deleted, else git's registration leaks as a "prunable" entry.
+    const newMgr = new WorktreeManager(repo);
+    newMgr.pruneStale();
+
+    expect(fs.existsSync(path.dirname(oldPath))).toBe(false);
+    const listAfter = spawnSync('git', ['worktree', 'list', '--porcelain'], { cwd: repo, stdio: 'pipe' })
+      .stdout.toString();
+    expect(listAfter).not.toContain(oldPath);
+    const adminDir = path.join(repo, '.git', 'worktrees');
+    const leftover = fs.existsSync(adminDir) ? fs.readdirSync(adminDir) : [];
+    expect(leftover).toEqual([]);
+  });
+
   test('create() throws on failure (no silent fallback to ROOT)', () => {
     const repo = createTestRepo();
     repos.push(repo);

@@ -245,20 +245,24 @@ export class WorktreeManager {
   /** Remove worktrees from previous runs that weren't cleaned up. */
   pruneStale(): void {
     try {
-      git(['worktree', 'prune'], this.repoRoot, true);
-
       const worktreeBase = path.join(this.repoRoot, '.gstack-worktrees');
-      if (!fs.existsSync(worktreeBase)) return;
+      if (fs.existsSync(worktreeBase)) {
+        for (const entry of fs.readdirSync(worktreeBase)) {
+          // Don't prune our own run
+          if (entry === this.runId) continue;
 
-      for (const entry of fs.readdirSync(worktreeBase)) {
-        // Don't prune our own run
-        if (entry === this.runId) continue;
-
-        const entryPath = path.join(worktreeBase, entry);
-        try {
-          fs.rmSync(entryPath, { recursive: true, force: true });
-        } catch { /* non-fatal */ }
+          const entryPath = path.join(worktreeBase, entry);
+          try {
+            fs.rmSync(entryPath, { recursive: true, force: true });
+          } catch { /* non-fatal */ }
+        }
       }
+
+      // Prune AFTER removing the directories. `git worktree prune` only drops
+      // admin entries in .git/worktrees/ whose working dir is already missing —
+      // pruning first (while the dirs still exist) leaves those registrations
+      // behind as leaked "prunable" entries that accumulate across runs.
+      git(['worktree', 'prune'], this.repoRoot, true);
     } catch {
       process.stderr.write('  WORKTREE: prune failed (non-fatal)\n');
     }
