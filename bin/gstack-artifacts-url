@@ -65,6 +65,12 @@ valid_owner_repo() {
 # Parse to (host, owner_repo) regardless of input shape.
 parse_url() {
   local u="$1"
+  # Tolerate trailing slashes (browser copy-paste, `gh`/`glab` web URLs,
+  # manual pastes). Without this a valid remote like
+  # https://github.com/owner/repo/ fails to canonicalize, so
+  # gstack-artifacts-init sees it as a DIFFERENT remote than the stored SSH
+  # form and falsely refuses to re-init.
+  while [ "${u%/}" != "$u" ]; do u="${u%/}"; done
   local host="" owner_repo=""
   case "$u" in
     https://*)

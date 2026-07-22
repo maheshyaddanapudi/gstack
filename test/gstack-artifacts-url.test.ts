@@ -96,6 +96,29 @@ describe('gstack-artifacts-url', () => {
     expect(r.code).toBe(2);
   });
 
+  test('tolerates a trailing slash on a valid HTTPS remote', () => {
+    // A browser copy-paste / manual paste of a valid repo URL often carries a
+    // trailing slash. It must canonicalize to the SAME form as the SSH remote,
+    // otherwise gstack-artifacts-init sees a false remote mismatch on re-init.
+    expect(run(['--to', 'https', 'https://github.com/owner/repo/']).stdout)
+      .toBe('https://github.com/owner/repo');
+    expect(run(['--owner-repo', 'https://github.com/owner/repo/']).stdout)
+      .toBe('owner/repo');
+    expect(run(['--to', 'ssh', 'https://github.com/owner/repo/']).stdout)
+      .toBe('git@github.com:owner/repo.git');
+    // Trailing slash after a .git suffix, and multiple trailing slashes.
+    expect(run(['--to', 'https', 'https://github.com/owner/repo.git/']).stdout)
+      .toBe('https://github.com/owner/repo');
+    expect(run(['--to', 'https', 'https://github.com/owner/repo//']).stdout)
+      .toBe('https://github.com/owner/repo');
+  });
+
+  test('trailing-slash HTTPS matches SSH canonical (re-init idempotency)', () => {
+    const fromSsh = run(['--to', 'https', 'git@github.com:owner/repo.git']).stdout;
+    const fromSlash = run(['--to', 'https', 'https://github.com/owner/repo/']).stdout;
+    expect(fromSlash).toBe(fromSsh);
+  });
+
   test('round-trip: https → ssh → https is identity', () => {
     const original = 'https://github.com/garrytan/gstack-artifacts-garrytan';
     const ssh = run(['--to', 'ssh', original]).stdout;
