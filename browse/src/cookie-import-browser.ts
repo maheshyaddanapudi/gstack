@@ -672,7 +672,7 @@ interface RawCookie {
   samesite: number;
 }
 
-function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>, platform: BrowserPlatform): string {
+export function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>, platform: BrowserPlatform): string {
   // Prefer unencrypted value if present
   if (row.value && row.value.length > 0) return row.value;
 
@@ -698,7 +698,13 @@ function decryptCookieValue(row: RawCookie, keys: Map<string, Buffer>, platform:
     const ciphertext = ev.slice(15, ev.length - 16);
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, nonce) as crypto.DecipherGCM;
     decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf-8');
+    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+    // Chromium (M124+) prepends a 32-byte SHA-256 domain hash to the cookie
+    // value before OSCrypt encryption. This happens in the platform-independent
+    // cookie-store layer, so the prefix is present on Windows GCM exactly as it
+    // is on the macOS/Linux CBC path below — strip it the same way.
+    if (plaintext.length <= 32) return '';
+    return plaintext.slice(32).toString('utf-8');
   }
 
   // macOS / Linux: AES-128-CBC — structure: v10/v11(3) + ciphertext

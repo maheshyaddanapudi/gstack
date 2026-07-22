@@ -147,8 +147,23 @@ function createLinuxFixtureDb() {
 let findInstalledBrowsers: any;
 let listDomains: any;
 let importCookies: any;
+let decryptCookieValue: any;
 let CookieImportError: any;
 let originalSpawn: typeof Bun.spawn;
+
+// ─── Windows AES-256-GCM encryption helper ──────────────────────
+// Mirrors Chromium's Windows v10 format: "v10" + nonce(12) + ciphertext + tag(16).
+// The plaintext carries a 32-byte SHA-256 domain-hash prefix (M124+, all platforms),
+// exactly like the CBC path, so the decrypt must strip it.
+function encryptWindowsGcm(value: string, key: Buffer): Buffer {
+  const domainHash = crypto.randomBytes(32); // 32-byte prefix (SHA256(domain) in real Chrome)
+  const plaintext = Buffer.concat([domainHash, Buffer.from(value, 'utf-8')]);
+  const nonce = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, nonce);
+  const ct = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([Buffer.from('v10'), nonce, ct, tag]);
+}
 
 beforeAll(async () => {
   createMacFixtureDb();
@@ -199,6 +214,7 @@ beforeAll(async () => {
   findInstalledBrowsers = mod.findInstalledBrowsers;
   listDomains = mod.listDomains;
   importCookies = mod.importCookies;
+  decryptCookieValue = mod.decryptCookieValue;
   CookieImportError = mod.CookieImportError;
 });
 
@@ -472,6 +488,42 @@ describe('Cookie Import Browser', () => {
         expect(domains).toContain('.linux-v11.com');
         expect(domains).toContain('.linux-plain.com');
       }, 'GstackLinuxDomains');
+    });
+  });
+
+  describe('Windows v10 GCM Decryption', () => {
+    test('strips the 32-byte domain-hash prefix from GCM plaintext', () => {
+      // Regression: the CBC path strips 32 bytes but the Windows GCM path used to
+      // return the raw plaintext, leaving the SHA-256 domain hash prepended to the
+      // value (32 bytes of binary garbage in front of every Windows cookie).
+      const gcmKey = crypto.randomBytes(32); // AES-256 key
+      const ev = encryptWindowsGcm('win-cookie-value', gcmKey);
+      const row = {
+        host_key: '.windows.com',
+        name: 'sid',
+        value: '',
+        encrypted_value: ev,
+        path: '/',
+        expires_utc: 0,
+        is_secure: 1,
+        is_httponly: 1,
+        has_expires: 1,
+        samesite: 1,
+      };
+      const keys = new Map<string, Buffer>([['v10', gcmKey]]);
+      const value = decryptCookieValue(row, keys, 'win32');
+      expect(value).toBe('win-cookie-value');
+    });
+
+    test('GCM path returns empty string when value is only the domain-hash prefix', () => {
+      const gcmKey = crypto.randomBytes(32);
+      const ev = encryptWindowsGcm('', gcmKey);
+      const row = {
+        host_key: '.windows.com', name: 'empty', value: '', encrypted_value: ev,
+        path: '/', expires_utc: 0, is_secure: 1, is_httponly: 0, has_expires: 1, samesite: 1,
+      };
+      const keys = new Map<string, Buffer>([['v10', gcmKey]]);
+      expect(decryptCookieValue(row, keys, 'win32')).toBe('');
     });
   });
 
