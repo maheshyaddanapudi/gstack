@@ -38,9 +38,24 @@ lr_decay_at = int(os.environ.get('AR_LR_DECAY_AT', 1500))  # step to drop LR 10x
 
 rng = np.random.default_rng(SEED)
 
+# Corpus path is configurable so this drops into any repo: point AR_DATA at any
+# UTF-8 text file (code, prose, logs). Defaults to the bundled tinyshakespeare.
+CORPUS = os.environ.get('AR_DATA', os.path.join(os.path.dirname(__file__), 'data', 'input.txt'))
+
 
 def load_data():
-    text = open('data/input.txt', 'r').read()
+    try:
+        text = open(CORPUS, 'r', encoding='utf-8').read()
+    except FileNotFoundError:
+        raise SystemExit(
+            f"corpus not found: {CORPUS}\n"
+            "Point AR_DATA at any UTF-8 text file, or fetch the default corpus:\n"
+            "  mkdir -p data && curl -sL "
+            "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt "
+            "-o data/input.txt"
+        )
+    if len(text) < 1000:
+        raise SystemExit(f"corpus too small ({len(text)} chars); need >= 1000 for a meaningful split")
     chars = sorted(set(text))
     stoi = {c: i for i, c in enumerate(chars)}
     data = np.array([stoi[c] for c in text], dtype=np.int32)
