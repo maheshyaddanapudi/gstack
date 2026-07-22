@@ -61,6 +61,15 @@ while IFS= read -r f; do
     *.rb|*.py|*.go|*.rs|*.java|*.php|*.ex|*.exs) BACKEND=true ;;
     *.ts|*.js) BACKEND=true ;;  # Non-component TS/JS is backend
   esac
+
+  # Tests are additive: a test file may also match a frontend/backend extension
+  # earlier in the case above (e.g. foo.test.tsx matches *.tsx and stops before
+  # the test patterns), which would leave SCOPE_TESTS=false. Re-check the test
+  # patterns independently so a test change is never under-reported.
+  case "$f" in
+    *.test.*|*.spec.*|*_test.*|*_spec.*) TESTS=true ;;
+    test/*|tests/*|spec/*|__tests__/*|cypress/*|e2e/*) TESTS=true ;;
+  esac
 done <<< "$FILES"
 
 echo "SCOPE_FRONTEND=$FRONTEND"
