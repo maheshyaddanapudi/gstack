@@ -301,6 +301,36 @@ describe('isServerHealthy', () => {
   });
 });
 
+describe('isProcessAlive', () => {
+  const { isProcessAlive } = require('../src/cli');
+
+  test('returns true for the current live process', () => {
+    expect(isProcessAlive(process.pid)).toBe(true);
+  });
+
+  test('returns false for a pid that is almost certainly not running', () => {
+    expect(isProcessAlive(2_000_000_000)).toBe(false);
+  });
+
+  // Guard against non-positive PIDs: process.kill(0, sig) targets the caller's
+  // own process group and process.kill(-N, sig) targets group N. A corrupt state
+  // file with pid 0 or a negative pid must NOT be reported as a live server —
+  // otherwise killServer() would signal an unrelated (or our own) process group.
+  test('returns false for pid 0 (process-group signal guard)', () => {
+    expect(isProcessAlive(0)).toBe(false);
+  });
+
+  test('returns false for a negative pid (process-group signal guard)', () => {
+    expect(isProcessAlive(-1)).toBe(false);
+    expect(isProcessAlive(-process.pid)).toBe(false);
+  });
+
+  test('returns false for non-integer pids', () => {
+    expect(isProcessAlive(NaN)).toBe(false);
+    expect(isProcessAlive(1.5)).toBe(false);
+  });
+});
+
 describe('startup error log', () => {
   test('write and read error log', () => {
     const tmpDir = path.join(os.tmpdir(), `browse-error-log-test-${Date.now()}`);

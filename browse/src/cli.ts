@@ -114,7 +114,13 @@ function readState(): ServerState | null {
   }
 }
 
-function isProcessAlive(pid: number): boolean {
+export function isProcessAlive(pid: number): boolean {
+  // Guard against non-positive PIDs. process.kill(0, sig) targets the caller's
+  // own process group and process.kill(-N, sig) targets group N — so a corrupt
+  // state file with pid 0 or a negative pid would make killServer() signal an
+  // unrelated (or our own) process group instead of a single server process.
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+
   if (IS_WINDOWS) {
     // Bun's compiled binary can't signal Windows PIDs (always throws ESRCH).
     // Use tasklist as a fallback. Only for one-shot calls — too slow for polling loops.
