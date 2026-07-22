@@ -352,16 +352,27 @@ function spawnClaude(cols: number, rows: number, onData: (chunk: Buffer) => void
   return proc;
 }
 
-/** Cleanup a PTY session: SIGINT, then SIGKILL after 3s. */
-function disposeSession(session: PtySession): void {
-  try { session.proc?.terminal?.close?.(); } catch {}
-  if (session.proc?.pid) {
-    try { session.proc.kill?.('SIGINT'); } catch {}
-    setTimeout(() => {
+/** Cleanup a PTY session: SIGINT, then SIGKILL after the grace window. */
+export function disposeSession(session: PtySession): void {
+  // Capture the proc reference BEFORE nulling session.proc below. The
+  // SIGKILL escalation runs on a timer; the closure MUST close over this
+  // captured `proc`, not read session.proc at fire time — session.proc is
+  // nulled synchronously at the end of this function, so a fire-time read
+  // would always see null and the force-kill would never happen. A claude
+  // PTY that ignores SIGINT (blocked in a syscall, mid tool-call) would
+  // then leak forever.
+  const proc = session.proc;
+  try { proc?.terminal?.close?.(); } catch {}
+  if (proc?.pid) {
+    try { proc.kill?.('SIGINT'); } catch {}
+    const graceMs = parseInt(process.env.GSTACK_PTY_SIGKILL_DELAY_MS || '3000', 10);
+    const t = setTimeout(() => {
       try {
-        if (session.proc && !session.proc.killed) session.proc.kill?.('SIGKILL');
+        if (!proc.killed) proc.kill?.('SIGKILL');
       } catch {}
-    }, 3000);
+    }, graceMs);
+    // Don't let the grace timer keep the bun process alive past shutdown.
+    (t as any)?.unref?.();
   }
   session.proc = null;
   session.spawned = false;
