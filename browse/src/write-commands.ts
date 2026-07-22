@@ -12,6 +12,21 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TEMP_DIR, isPathWithin } from './platform';
 
+/**
+ * Parse a user-supplied timeout argument (milliseconds). A non-numeric value
+ * like "abc" would otherwise become NaN, which Playwright treats as an INFINITE
+ * wait — the command hangs instead of timing out. Rejects NaN/negative with a
+ * clear error.
+ */
+function parseTimeoutArg(raw: string | undefined, fallback: number): number {
+  if (raw === undefined) return fallback;
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 0) {
+    throw new Error(`Invalid timeout: "${raw}" (expected milliseconds, e.g. 5000)`);
+  }
+  return n;
+}
+
 export async function handleWriteCommand(
   command: string,
   args: string[],
@@ -176,7 +191,7 @@ export async function handleWriteCommand(
       const selector = args[0];
       if (!selector) throw new Error('Usage: browse wait <selector|--networkidle|--load|--domcontentloaded>');
       if (selector === '--networkidle') {
-        const timeout = args[1] ? parseInt(args[1], 10) : 15000;
+        const timeout = parseTimeoutArg(args[1], 15000);
         await page.waitForLoadState('networkidle', { timeout });
         return 'Network idle';
       }
@@ -188,7 +203,7 @@ export async function handleWriteCommand(
         await page.waitForLoadState('domcontentloaded');
         return 'DOM content loaded';
       }
-      const timeout = args[1] ? parseInt(args[1], 10) : 15000;
+      const timeout = parseTimeoutArg(args[1], 15000);
       const resolved = await bm.resolveRef(selector);
       if ('locator' in resolved) {
         await resolved.locator.waitFor({ state: 'visible', timeout });

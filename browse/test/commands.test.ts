@@ -1799,6 +1799,32 @@ describe('Wait load states', () => {
     const result = await handleWriteCommand('wait', ['#title'], bm);
     expect(result).toContain('appeared');
   });
+
+  // Regression: a non-numeric timeout arg becomes NaN, which Playwright treats
+  // as an infinite wait (the command hangs). It must reject fast instead.
+  test('wait with non-numeric timeout throws instead of hanging', async () => {
+    await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+    let threw = false;
+    try {
+      await handleWriteCommand('wait', ['#never-appears', 'abc'], bm);
+    } catch (err: any) {
+      threw = true;
+      expect(err.message).toContain('Invalid timeout');
+    }
+    expect(threw).toBe(true);
+  }, 5000);
+
+  test('wait --networkidle with non-numeric timeout throws', async () => {
+    await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+    let threw = false;
+    try {
+      await handleWriteCommand('wait', ['--networkidle', 'notanumber'], bm);
+    } catch (err: any) {
+      threw = true;
+      expect(err.message).toContain('Invalid timeout');
+    }
+    expect(threw).toBe(true);
+  }, 5000);
 });
 
 // ─── Console --errors ──────────────────────────────────────────
