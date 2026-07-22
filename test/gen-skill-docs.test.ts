@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { COMMAND_DESCRIPTIONS } from '../browse/src/commands';
 import { SNAPSHOT_FLAGS } from '../browse/src/snapshot';
+import { extractHookSafetyProse } from '../scripts/resolvers/codex-helpers';
 import { transformFrontmatter } from '../scripts/resolvers/codex-helpers';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -1646,6 +1647,46 @@ describe('telemetry', () => {
         expect(content).toContain('Telemetry (run last)');
       }
     }
+  });
+});
+
+describe('extractHookSafetyProse', () => {
+  test('single-tool matcher yields safety prose for that tool', () => {
+    const tmpl = `---
+name: guard
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks: []
+---
+body`;
+    const prose = extractHookSafetyProse(tmpl);
+    expect(prose).not.toBeNull();
+    expect(prose).toContain('Safety Advisory');
+    expect(prose).toContain('bash commands');
+  });
+
+  test('combined regex matcher ("Edit|Write") names BOTH tools', () => {
+    // Claude Code matchers accept regex alternations. The safety prose must
+    // still be emitted and cover every tool in the alternation — otherwise the
+    // entire Codex safety advisory is silently dropped.
+    const tmpl = `---
+name: guard
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks: []
+---
+body`;
+    const prose = extractHookSafetyProse(tmpl);
+    expect(prose).not.toBeNull();
+    expect(prose).toContain('Safety Advisory');
+    expect(prose).toContain('file edits');
+    expect(prose).toContain('file writes');
+  });
+
+  test('returns null when no hooks field is present', () => {
+    expect(extractHookSafetyProse('---\nname: x\n---\nbody')).toBeNull();
   });
 });
 

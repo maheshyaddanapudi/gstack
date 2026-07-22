@@ -109,12 +109,16 @@ export function transformFrontmatter(content: string, host: Host): string {
 export function extractHookSafetyProse(tmplContent: string): string | null {
   if (!tmplContent.match(/^hooks:/m)) return null;
 
-  // Parse the hook matchers to build a human-readable safety description
+  // Parse the hook matchers to build a human-readable safety description.
+  // Matchers may be regex alternations (e.g. "Edit|Write") — valid Claude Code
+  // matcher syntax — so capture the whole quoted value and split on `|`.
   const matchers: string[] = [];
-  const matcherRegex = /matcher:\s*"(\w+)"/g;
+  const matcherRegex = /matcher:\s*"([^"]+)"/g;
   let m;
   while ((m = matcherRegex.exec(tmplContent)) !== null) {
-    if (!matchers.includes(m[1])) matchers.push(m[1]);
+    for (const tool of m[1].split('|').map(t => t.trim()).filter(Boolean)) {
+      if (!matchers.includes(tool)) matchers.push(tool);
+    }
   }
 
   if (matchers.length === 0) return null;
