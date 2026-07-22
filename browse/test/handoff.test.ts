@@ -6,9 +6,11 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
+import { chromium } from 'playwright';
 import { startTestServer } from './test-server';
 import { BrowserManager, type BrowserState } from '../src/browser-manager';
 import { handleWriteCommand } from '../src/write-commands';
+import { handleReadCommand } from '../src/read-commands';
 import { handleMetaCommand } from '../src/meta-commands';
 
 let testServer: ReturnType<typeof startTestServer>;
@@ -148,6 +150,47 @@ describe('handoff edge cases', () => {
     expect(result).toContain('Already in headed mode');
     (bm as any).isHeaded = false;
   }, 10000);
+
+  test('failed restore rolls back to the still-running headless browser', async () => {
+    const rbm = new BrowserManager();
+    await rbm.launch();
+
+    // Seed real headless state so we can prove the browser survives.
+    await handleWriteCommand('goto', [baseUrl + '/basic.html'], rbm);
+    await handleWriteCommand('cookie', ['rollback=kept'], rbm);
+    const tabsBefore = rbm.getTabCount();
+
+    // Stub the headed launch (full headed Chromium isn't available in CI) so
+    // handoff reaches the post-swap restore step, then force restore to fail.
+    const realLaunch = chromium.launchPersistentContext;
+    const fakeBrowser: any = { on() {}, removeAllListeners() {}, close: async () => {} };
+    const fakeContext: any = {
+      browser: () => fakeBrowser,
+      setExtraHTTPHeaders: async () => {},
+      close: async () => {},
+    };
+    (chromium as any).launchPersistentContext = async () => fakeContext;
+    const realRestore = rbm.restoreState.bind(rbm);
+    (rbm as any).restoreState = async () => { throw new Error('simulated restore failure'); };
+
+    try {
+      const result = await rbm.handoff('trigger restore failure');
+
+      // Error is surfaced, and the manager is rolled back to a usable state.
+      expect(result).toContain('Handoff failed during state restore');
+      expect(rbm.getConnectionMode()).toBe('launched');
+      expect(rbm.getIsHeaded()).toBe(false);
+      expect(rbm.getTabCount()).toBe(tabsBefore);
+
+      // The original headless browser is still fully operational.
+      (rbm as any).restoreState = realRestore;
+      const cookies = await handleReadCommand('cookies', [], rbm);
+      expect(cookies).toContain('rollback');
+    } finally {
+      (chromium as any).launchPersistentContext = realLaunch;
+      await rbm.close();
+    }
+  }, 20000);
 
   test('resume clears refs and resets failures', () => {
     bm.incrementFailures();

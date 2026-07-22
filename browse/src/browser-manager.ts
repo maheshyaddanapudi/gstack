@@ -1001,10 +1001,14 @@ export class BrowserManager {
     }
 
     // 3. Restore state into new headed browser
+    // Capture the old headless refs BEFORE swapping so we can roll back if
+    // restore fails — otherwise the manager would be left pointing at the
+    // (about-to-be-closed) headed context while the headless browser leaks.
+    const oldBrowser = this.browser;
+    const oldContext = this.context;
+    const oldPages = new Map(this.pages);
     try {
       // Swap to new browser/context before restoreState (it uses this.context)
-      const oldBrowser = this.browser;
-
       this.context = newContext;
       this.browser = newContext.browser();
       this.pages.clear();
@@ -1037,8 +1041,16 @@ export class BrowserManager {
         `STATUS: Waiting for user. Run 'resume' when done.`,
       ].join('\n');
     } catch (err: unknown) {
-      // Restore failed — close the new context, keep old state
+      // Restore failed — close the new headed context and roll the manager back
+      // to the still-running headless browser so it stays usable (matching the
+      // error message). Without this, connectionMode is stuck 'headed', pages
+      // are cleared, and the headless browser is orphaned.
       await newContext.close().catch(() => {});
+      this.browser = oldBrowser;
+      this.context = oldContext;
+      this.pages = oldPages;
+      this.connectionMode = 'launched';
+      this.isHeaded = false;
       const msg = err instanceof Error ? err.message : String(err);
       return `ERROR: Handoff failed during state restore — ${msg}. Headless browser still running.`;
     }
