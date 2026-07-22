@@ -253,6 +253,9 @@ describe('WorktreeManager', () => {
     spawnSync('git', ['worktree', 'remove', '--force', oldPath], { cwd: repo, stdio: 'pipe' });
     // Recreate the directory to simulate orphaned state
     fs.mkdirSync(oldPath, { recursive: true });
+    // Backdate mtime to simulate a stale worktree (> 1 hour old)
+    const staleTime = new Date(Date.now() - 7200_000);
+    fs.utimesSync(oldRunDir, staleTime, staleTime);
 
     // New manager should prune the old run's directory
     const newMgr = new WorktreeManager(repo);
@@ -274,6 +277,11 @@ describe('WorktreeManager', () => {
     const listBefore = spawnSync('git', ['worktree', 'list', '--porcelain'], { cwd: repo, stdio: 'pipe' })
       .stdout.toString();
     expect(listBefore).toContain(oldPath);
+
+    // Backdate mtime > 1 hour so pruneStale's age-skip doesn't treat it as
+    // a concurrent in-progress run.
+    const staleTime = new Date(Date.now() - 7200_000);
+    fs.utimesSync(path.dirname(oldPath), staleTime, staleTime);
 
     // New run prunes stale worktrees. Pruning must happen AFTER the dir is
     // deleted, else git's registration leaks as a "prunable" entry.

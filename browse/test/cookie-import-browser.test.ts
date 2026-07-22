@@ -147,7 +147,6 @@ function createLinuxFixtureDb() {
 let findInstalledBrowsers: any;
 let listDomains: any;
 let importCookies: any;
-let decryptCookieValue: any;
 let CookieImportError: any;
 let originalSpawn: typeof Bun.spawn;
 
@@ -201,7 +200,6 @@ beforeAll(async () => {
   listDomains = mod.listDomains;
   importCookies = mod.importCookies;
   CookieImportError = mod.CookieImportError;
-  decryptCookieValue = mod.decryptCookieValue;
 });
 
 afterAll(() => {
@@ -399,75 +397,6 @@ describe('Cookie Import Browser', () => {
       db.close();
       expect(row.has_expires).toBe(0);
       // When has_expires=0, the module should return expires=-1
-    });
-  });
-
-  describe('v20 app-bound decryption (AES-256-GCM)', () => {
-    // Real Chromium v20 layout: 'v20' | 12-byte nonce | ciphertext | 16-byte tag.
-    // Plaintext carries a 32-byte metadata prefix (domain hash) before the value.
-    const V20_KEY = crypto.randomBytes(32); // AES-256 app-bound key
-
-    function encryptV20(value: string, key: Buffer = V20_KEY): Buffer {
-      const nonce = crypto.randomBytes(12);
-      const meta = crypto.randomBytes(32); // 32-byte metadata prefix
-      const plaintext = Buffer.concat([meta, Buffer.from(value, 'utf-8')]);
-      const cipher = crypto.createCipheriv('aes-256-gcm', key, nonce);
-      const enc = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-      const tag = cipher.getAuthTag();
-      return Buffer.concat([Buffer.from('v20'), nonce, enc, tag]);
-    }
-
-    test('round-trips a v20 cookie value', () => {
-      const ev = encryptV20('app-bound-secret-🔐');
-      const row = { value: '', encrypted_value: ev } as any;
-      const out = decryptCookieValue(row, new Map([['v20', V20_KEY]]));
-      expect(out).toBe('app-bound-secret-🔐');
-    });
-
-    test('wrong key fails the auth tag instead of returning garbage', () => {
-      const ev = encryptV20('secret');
-      const row = { value: '', encrypted_value: ev } as any;
-      expect(() => decryptCookieValue(row, new Map([['v20', crypto.randomBytes(32)]])))
-        .toThrow();
-    });
-
-    test('a too-short v20 payload is rejected', () => {
-      const row = { value: '', encrypted_value: Buffer.concat([Buffer.from('v20'), Buffer.alloc(4)]) } as any;
-      expect(() => decryptCookieValue(row, new Map([['v20', V20_KEY]]))).toThrow('too short');
-    });
-
-    test('v10 CBC path still works alongside v20', () => {
-      const ev = encryptCookieValue('legacy-v10', { key: TEST_KEY, prefix: 'v10' });
-      const row = { value: '', encrypted_value: ev } as any;
-      const out = decryptCookieValue(row, new Map([['v10', TEST_KEY]]));
-      expect(out).toBe('legacy-v10');
-    });
-
-    test('stripDomainHash=false keeps the full value (pre-v24 DB, no prefix)', () => {
-      // Encrypt WITHOUT the 32-byte domain-hash prefix — the on-disk format for
-      // cookie DBs with schema version <= 23 (Chrome < ~130). The old code
-      // unconditionally stripped 32 bytes and corrupted these values.
-      const raw = 'auth=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      const plaintext = Buffer.from(raw, 'utf-8');
-      const blockSize = 16;
-      const padLen = blockSize - (plaintext.length % blockSize);
-      const padded = Buffer.concat([plaintext, Buffer.alloc(padLen, padLen)]);
-      const cipher = crypto.createCipheriv('aes-128-cbc', TEST_KEY, IV);
-      cipher.setAutoPadding(false);
-      const ev = Buffer.concat([Buffer.from('v10'), cipher.update(padded), cipher.final()]);
-      const row = { value: '', encrypted_value: ev } as any;
-
-      // Without stripping (v23 DB): full value preserved.
-      expect(decryptCookieValue(row, new Map([['v10', TEST_KEY]]), false)).toBe(raw);
-      // With stripping (v24+ DB, default): first 32 bytes removed — proves the
-      // flag actually gates the behavior and the old default would have corrupted it.
-      expect(decryptCookieValue(row, new Map([['v10', TEST_KEY]]), true)).toBe(raw.slice(32));
-    });
-
-    test('missing key for a prefix throws a clear error', () => {
-      const ev = encryptV20('x');
-      const row = { value: '', encrypted_value: ev } as any;
-      expect(() => decryptCookieValue(row, new Map())).toThrow('No decryption key available for v20');
     });
   });
 

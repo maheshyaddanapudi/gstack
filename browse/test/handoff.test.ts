@@ -10,8 +10,12 @@ import { chromium } from 'playwright';
 import { startTestServer } from './test-server';
 import { BrowserManager, type BrowserState } from '../src/browser-manager';
 import { handleWriteCommand } from '../src/write-commands';
+import { handleWriteCommand as _handleWriteCommand } from '../src/write-commands';
 import { handleReadCommand } from '../src/read-commands';
 import { handleMetaCommand } from '../src/meta-commands';
+
+const handleWriteCommand = (cmd: string, args: string[], b: BrowserManager) =>
+  _handleWriteCommand(cmd, args, b.getActiveSession(), b);
 
 let testServer: ReturnType<typeof startTestServer>;
 let bm: BrowserManager;

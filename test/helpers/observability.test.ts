@@ -90,11 +90,13 @@ describe('session-runner observability', () => {
     const src = fs.readFileSync(
       path.resolve(__dirname, 'session-runner.ts'), 'utf-8'
     );
-    // Count non-fatal comments — should be present for each new I/O path
+    // Count non-fatal comments — should be present for each best-effort I/O path
     const nonFatalCount = (src.match(/\/\* non-fatal \*\//g) || []).length;
-    // Original had 2 (promptFile unlink + failure transcript), we added 4 more
-    // (runDir creation, progress.log, heartbeat, NDJSON append)
-    expect(nonFatalCount).toBeGreaterThanOrEqual(6);
+    // Every best-effort I/O path is guarded: failure transcript, progress.log,
+    // heartbeat, NDJSON append, and the eval-store write. (The prompt-file unlink
+    // guarded historically was removed when the runner stopped staging prompts
+    // to disk — the threshold tracks the current set of I/O paths.)
+    expect(nonFatalCount).toBeGreaterThanOrEqual(5);
   });
 });
 

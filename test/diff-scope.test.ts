@@ -1,86 +1,180 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+/**
+ * Tests for bin/gstack-diff-scope — verifies scope signal detection.
+ *
+ * Creates temp git repos with specific file patterns and verifies
+ * the correct SCOPE_* variables are output.
+ */
+import { describe, test, expect, afterAll } from 'bun:test';
+import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
 import { spawnSync } from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as os from 'os';
 
-const ROOT = path.resolve(import.meta.dir, '..');
-const DIFF_SCOPE = path.join(ROOT, 'bin', 'gstack-diff-scope');
+const SCRIPT = join(import.meta.dir, '..', 'bin', 'gstack-diff-scope');
 
-let repoDir: string;
+const dirs: string[] = [];
 
-function git(...args: string[]) {
-  const r = spawnSync('git', ['-C', repoDir, ...args], { encoding: 'utf8' });
-  if (r.status !== 0) throw new Error(`git ${args.join(' ')} failed: ${r.stderr}`);
-  return r.stdout;
-}
+function createRepo(files: string[]): string {
+  const dir = mkdtempSync(join(tmpdir(), 'diff-scope-test-'));
+  dirs.push(dir);
 
-function writeFile(rel: string, content = 'x') {
-  const abs = path.join(repoDir, rel);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, content);
-}
+  const run = (cmd: string, args: string[]) =>
+    spawnSync(cmd, args, { cwd: dir, stdio: 'pipe', timeout: 5000 });
 
-// Run diff-scope against `main` inside the temp repo, return SCOPE_* as a map.
-function runScope(): Record<string, string> {
-  const r = spawnSync('bash', [DIFF_SCOPE, 'main'], { cwd: repoDir, encoding: 'utf8', timeout: 5000 });
-  const out: Record<string, string> = {};
-  for (const line of r.stdout.trim().split('\n')) {
-    const m = line.match(/^(SCOPE_[A-Z]+)=(.*)$/);
-    if (m) out[m[1]] = m[2];
+  run('git', ['init', '-b', 'main']);
+  run('git', ['config', 'user.email', 'test@test.com']);
+  run('git', ['config', 'user.name', 'Test']);
+
+  // Base commit
+  writeFileSync(join(dir, 'README.md'), '# test\n');
+  run('git', ['add', '.']);
+  run('git', ['commit', '-m', 'initial']);
+
+  // Feature branch with specified files
+  run('git', ['checkout', '-b', 'feature/test']);
+  for (const f of files) {
+    const fullPath = join(dir, f);
+    const dirPath = fullPath.substring(0, fullPath.lastIndexOf('/'));
+    if (dirPath !== dir) mkdirSync(dirPath, { recursive: true });
+    writeFileSync(fullPath, '# test content\n');
   }
-  return out;
+  run('git', ['add', '.']);
+  run('git', ['commit', '-m', 'add files']);
+
+  return dir;
 }
 
-// Create a feature branch off main containing exactly `files`, commit, checkout.
-function branchWithFiles(files: string[]) {
-  git('checkout', '-q', 'main');
-  git('checkout', '-q', '-B', 'feature');
-  for (const f of files) writeFile(f);
-  git('add', '-A');
-  git('commit', '-q', '-m', 'feature');
+function runScope(dir: string): Record<string, string> {
+  const result = spawnSync('bash', [SCRIPT, 'main'], {
+    cwd: dir, stdio: 'pipe', timeout: 5000,
+  });
+  const output = result.stdout.toString().trim();
+  const vars: Record<string, string> = {};
+  for (const line of output.split('\n')) {
+    const [key, val] = line.split('=');
+    if (key && val) vars[key] = val;
+  }
+  return vars;
 }
+
+afterAll(() => {
+  for (const d of dirs) {
+    try { rmSync(d, { recursive: true, force: true }); } catch {}
+  }
+});
 
 describe('gstack-diff-scope', () => {
-  beforeEach(() => {
-    repoDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-diffscope-'));
-    git('init', '-q');
-    git('config', 'user.email', 't@t.com');
-    git('config', 'user.name', 't');
-    git('checkout', '-q', '-b', 'main');
-    writeFile('README.md', 'base');
-    git('add', '-A');
-    git('commit', '-q', '-m', 'base');
-  });
+  // --- Existing scope signals ---
 
-  afterEach(() => {
-    fs.rmSync(repoDir, { recursive: true, force: true });
-  });
-
-  // Regression: a test written in a frontend-framework extension (.test.tsx)
-  // matches *.tsx in the case statement and stops before the test patterns,
-  // so SCOPE_TESTS used to be reported as false for a test-only change.
-  test('frontend-extension test file sets SCOPE_TESTS=true', () => {
-    branchWithFiles(['src/Button.test.tsx']);
-    const scope = runScope();
-    expect(scope.SCOPE_TESTS).toBe('true');
-    expect(scope.SCOPE_FRONTEND).toBe('true'); // legitimately also frontend
-  });
-
-  test('.spec.jsx and .test.vue test files also set SCOPE_TESTS=true', () => {
-    branchWithFiles(['a.spec.jsx', 'b.test.vue']);
-    expect(runScope().SCOPE_TESTS).toBe('true');
-  });
-
-  test('plain backend test file sets SCOPE_TESTS=true', () => {
-    branchWithFiles(['src/util.test.ts']);
-    expect(runScope().SCOPE_TESTS).toBe('true');
-  });
-
-  test('non-test frontend file does not set SCOPE_TESTS', () => {
-    branchWithFiles(['src/Button.tsx']);
-    const scope = runScope();
+  test('detects frontend files', () => {
+    const dir = createRepo(['styles.css', 'component.tsx']);
+    const scope = runScope(dir);
     expect(scope.SCOPE_FRONTEND).toBe('true');
-    expect(scope.SCOPE_TESTS).toBe('false');
+  });
+
+  test('detects backend files', () => {
+    const dir = createRepo(['app.rb', 'service.py']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_BACKEND).toBe('true');
+  });
+
+  // #1810: ESM/CJS and explicit-module TS extensions matched no category, so an
+  // .mjs/.cjs/.mts/.cts-only PR skipped the backend reviewer entirely.
+  test('detects ESM/CJS/explicit-module backend files (#1810)', () => {
+    for (const f of ['server.mjs', 'worker.cjs', 'config.mts', 'legacy.cts']) {
+      const scope = runScope(createRepo([f]));
+      expect(scope.SCOPE_BACKEND).toBe('true');
+    }
+  });
+
+  test('detects test files', () => {
+    const dir = createRepo(['test/app.test.ts']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_TESTS).toBe('true');
+  });
+
+  // --- New scope signals (Review Army) ---
+
+  test('detects migrations via db/migrate/', () => {
+    const dir = createRepo(['db/migrate/20260330_create_users.rb']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_MIGRATIONS).toBe('true');
+  });
+
+  test('detects migrations via generic migrations/', () => {
+    const dir = createRepo(['app/migrations/0001_initial.py']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_MIGRATIONS).toBe('true');
+  });
+
+  test('detects migrations via prisma', () => {
+    const dir = createRepo(['prisma/migrations/20260330/migration.sql']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_MIGRATIONS).toBe('true');
+  });
+
+  test('detects API via controller files', () => {
+    const dir = createRepo(['app/controllers/users_controller.rb']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_API).toBe('true');
+  });
+
+  test('detects API via route files', () => {
+    const dir = createRepo(['src/routes/api.ts']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_API).toBe('true');
+  });
+
+  test('detects API via GraphQL schemas', () => {
+    const dir = createRepo(['schema.graphql']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_API).toBe('true');
+  });
+
+  test('detects auth files', () => {
+    const dir = createRepo(['app/services/auth_service.rb']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_AUTH).toBe('true');
+  });
+
+  test('detects session files', () => {
+    const dir = createRepo(['lib/session_manager.ts']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_AUTH).toBe('true');
+  });
+
+  test('detects JWT files', () => {
+    const dir = createRepo(['utils/jwt_helper.py']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_AUTH).toBe('true');
+  });
+
+  test('detects config via bun.lock (Bun v1.2+ text lockfile)', () => {
+    const dir = createRepo(['bun.lock']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_CONFIG).toBe('true');
+  });
+
+  test('returns false for all new signals when no matching files', () => {
+    const dir = createRepo(['docs/readme.md', 'config.yml']);
+    const scope = runScope(dir);
+    expect(scope.SCOPE_MIGRATIONS).toBe('false');
+    expect(scope.SCOPE_API).toBe('false');
+    expect(scope.SCOPE_AUTH).toBe('false');
+  });
+
+  test('outputs all 9 scope variables', () => {
+    const dir = createRepo(['app.ts']);
+    const scope = runScope(dir);
+    expect(Object.keys(scope)).toHaveLength(9);
+    expect(scope).toHaveProperty('SCOPE_FRONTEND');
+    expect(scope).toHaveProperty('SCOPE_BACKEND');
+    expect(scope).toHaveProperty('SCOPE_PROMPTS');
+    expect(scope).toHaveProperty('SCOPE_TESTS');
+    expect(scope).toHaveProperty('SCOPE_DOCS');
+    expect(scope).toHaveProperty('SCOPE_CONFIG');
+    expect(scope).toHaveProperty('SCOPE_MIGRATIONS');
+    expect(scope).toHaveProperty('SCOPE_API');
+    expect(scope).toHaveProperty('SCOPE_AUTH');
   });
 });

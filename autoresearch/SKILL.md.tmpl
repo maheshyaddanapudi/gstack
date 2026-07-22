@@ -8,7 +8,8 @@ description: |
   and the change is KEPT only if the metric improves — otherwise reverted.
   Two modes: (1) optimize a real ML training metric on a tiny CPU-trainable
   model, and (2) apply the same propose -> measure -> keep loop to improve any
-  repository (fan out researcher subagents, keep only test-verified fixes).
+  repository — including any gstack project — by fanning out researcher
+  subagents and keeping only test-verified fixes.
   Use when: "run autoresearch", "autonomous improvement loop", "optimize this
   metric", "have agents keep improving X", "propose-measure-keep".
 allowed-tools:

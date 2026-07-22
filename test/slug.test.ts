@@ -60,6 +60,8 @@ describe("gstack-slug", () => {
     git("checkout", "-q", "-b", "feat/x");
     const r = runSlug();
     expect(r.status).toBe(0);
-    expect(parse(r.stdout).BRANCH).toBe("feat-x");
+    // gstack-slug strips any char outside [a-zA-Z0-9._-] via `tr -cd`, so the
+    // slash is removed entirely (not converted to a dash): feat/x -> featx.
+    expect(parse(r.stdout).BRANCH).toBe("featx");
   });
 });
