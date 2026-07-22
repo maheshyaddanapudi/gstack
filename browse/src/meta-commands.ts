@@ -174,9 +174,14 @@ export async function handleMetaCommand(
         }
       }
 
-      // Separate target (selector/@ref) from output path
+      // Separate target (selector/@ref) from output path.
+      // Relative/absolute file paths ("./shot.png", "../shot.png", "/tmp/shot.png")
+      // also start with "." or "/", so exclude path-like args before selector
+      // detection — otherwise a leading-dot relative path is mistaken for a CSS
+      // class selector and Playwright throws a CSS parse error.
       for (const arg of remaining) {
-        if (arg.startsWith('@e') || arg.startsWith('@c') || arg.startsWith('.') || arg.startsWith('#') || arg.includes('[')) {
+        const isPathLike = arg.startsWith('/') || arg.startsWith('./') || arg.startsWith('../');
+        if (!isPathLike && (arg.startsWith('@e') || arg.startsWith('@c') || arg.startsWith('.') || arg.startsWith('#') || arg.includes('['))) {
           targetSelector = arg;
         } else {
           outputPath = arg;

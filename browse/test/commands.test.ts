@@ -472,6 +472,22 @@ describe('Visual', () => {
     fs.unlinkSync(p);
   });
 
+  test('screenshot to relative path saves full page (not misread as selector)', async () => {
+    await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
+    const relPath = './browse-test-rel-screenshot.png';
+    const absPath = path.resolve(relPath);
+    try {
+      const result = await handleMetaCommand('screenshot', [relPath], bm, async () => {});
+      // A leading-dot relative path must be an output path, not a CSS selector.
+      expect(result).toContain('Screenshot saved');
+      expect(result).not.toContain('(element)');
+      expect(fs.existsSync(absPath)).toBe(true);
+      expect(fs.statSync(absPath).size).toBeGreaterThan(1000);
+    } finally {
+      if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+    }
+  });
+
   test('screenshot with CSS selector crops to element', async () => {
     await handleWriteCommand('goto', [baseUrl + '/basic.html'], bm);
     const p = '/tmp/browse-test-element-css.png';
