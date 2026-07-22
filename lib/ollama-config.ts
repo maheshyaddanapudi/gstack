@@ -120,6 +120,19 @@ function parseSimpleYaml(content: string): Record<string, string> {
   return result;
 }
 
+/**
+ * Parse a numeric config value, falling back to `fallback` when the value is
+ * missing OR present-but-non-numeric. `parseInt(x ?? '32768')` alone is unsafe:
+ * the `??` only guards `undefined`, so a present garbage value like `auto`
+ * parses to NaN and silently violates the `numCtx: number` contract (and the
+ * documented 32768 default). Same bug class as the empty-value skip in
+ * parseSimpleYaml — guard the malformed case explicitly.
+ */
+function parseNumCtx(value: string | undefined, fallback = 32768): number {
+  const parsed = parseInt(value ?? '', 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 /** Parse a YAML array value like "[1, 2]" or "1,2" into ModelTier[]. */
 function parseTierArray(value: string | undefined): ModelTier[] {
   if (!value) return [];
@@ -162,7 +175,7 @@ export function loadOllamaConfig(): OllamaConfig | null {
         2: kv['ollama_tier2_model'] ?? 'qwen3:14b',
         3: kv['ollama_tier3_model'] ?? 'qwen3:7b',
       },
-      numCtx: parseInt(kv['ollama_num_ctx'] ?? '32768', 10),
+      numCtx: parseNumCtx(kv['ollama_num_ctx']),
       thinking: kv['ollama_thinking'] !== 'false',
       providerMode,
       hybridCloudTiers: parseTierArray(kv['hybrid_cloud_tiers']),

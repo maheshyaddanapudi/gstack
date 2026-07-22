@@ -92,6 +92,17 @@ describe('loadOllamaConfig', () => {
     expect(config!.providerMode).toBe('local');
   });
 
+  test('non-numeric ollama_num_ctx falls back to default (not NaN)', async () => {
+    // A present-but-non-numeric value must not defeat the 32768 default. The old
+    // `parseInt(kv[...] ?? '32768')` only guarded undefined, so `auto` parsed to
+    // NaN — silently violating the `numCtx: number` contract.
+    writeConfig('ollama_enabled: true\nollama_num_ctx: auto\n');
+    const config = loadOllamaConfig();
+    expect(config).not.toBeNull();
+    expect(Number.isNaN(config!.numCtx)).toBe(false);
+    expect(config!.numCtx).toBe(32768);
+  });
+
   test('thinking defaults to true, set to false explicitly', async () => {
     writeConfig('ollama_enabled: true\nollama_thinking: false\n');
     const config = loadOllamaConfig();
