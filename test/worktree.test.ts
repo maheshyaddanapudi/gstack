@@ -145,6 +145,28 @@ describe('WorktreeManager', () => {
     mgr.cleanup('test-harvest-new');
   });
 
+  test('harvest() reports non-ASCII filenames verbatim (not octal-quoted)', () => {
+    const repo = createTestRepo();
+    repos.push(repo);
+    const mgr = new WorktreeManager(repo);
+    const worktreePath = mgr.create('test-harvest-unicode');
+
+    // Agent creates a file whose name contains a non-ASCII character. Git's
+    // default --name-only output would quote it as "caf\303\251.txt"; harvest
+    // must surface the real name so downstream consumers can match it.
+    fs.writeFileSync(path.join(worktreePath, 'café.txt'), 'unicode name\n');
+
+    const result = mgr.harvest('test-harvest-unicode');
+    expect(result).not.toBeNull();
+    expect(result!.changedFiles).toContain('café.txt');
+    for (const f of result!.changedFiles) {
+      expect(f.startsWith('"')).toBe(false);
+      expect(f).not.toContain('\\303');
+    }
+
+    mgr.cleanup('test-harvest-unicode');
+  });
+
   test('harvest() captures committed changes (git diff originalSha)', () => {
     const repo = createTestRepo();
     repos.push(repo);

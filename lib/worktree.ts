@@ -169,8 +169,11 @@ export class WorktreeManager {
       const diffStat = git(['-C', info.path, 'diff', info.originalSha, '--cached', '--stat'], info.path, true);
 
       // Get changed file names
-      const nameOnly = git(['-C', info.path, 'diff', info.originalSha, '--cached', '--name-only'], info.path, true);
-      const changedFiles = nameOnly.split('\n').filter(Boolean);
+      // Get changed file names. Use -z (NUL-separated) so non-ASCII paths are
+      // returned verbatim; git's default output quotes and octal-escapes them
+      // (e.g. "caf\303\251.txt"), which corrupts every such entry in changedFiles.
+      const nameOnly = git(['-C', info.path, 'diff', info.originalSha, '--cached', '--name-only', '-z'], info.path, true);
+      const changedFiles = nameOnly.split('\0').filter(Boolean);
 
       // Dedup check
       const hash = crypto.createHash('sha256').update(patch).digest('hex');
