@@ -1,5 +1,75 @@
 # Changelog
 
+## [1.61.0.0] - 2026-07-22
+
+## **An autonomous research loop you can run on a CPU, plus four real bugs it caught in this very codebase.**
+## **Ship it into any repo as a standalone skill, or point it at gstack and watch it find defects with proof.**
+
+Two new skills turn "propose a change, measure it, keep it only if it helped" into something you can actually run. `/autoresearch` optimizes a real neural-net training metric on a CPU-trainable model, or fans researcher agents across a repo to find test-verified fixes. `autoresearch-mini` is the same loop packaged as a standalone, dependency-free skill you copy into any repo's `.claude/skills/`. This release also merges 214 commits of upstream work and regenerates a full knowledge graph of the codebase. The loop was not a demo: pointed at gstack's own newer code, it found and fixed four genuine defects, each with a regression test that fails without the fix.
+
+### The numbers that matter
+
+The ML loop is reproducible with `python3 autoresearch-mini/skill/train.py`; the repo-mode findings are the four fixes below, each landed with a both-directions-verified test.
+
+| Metric | Before | After | Δ |
+|--------|--------|-------|---|
+| autoresearch-mini validation loss (nats/char) | 2.4929 | 2.2410 | −10.1% |
+| autoresearch-mini training cost | H100, ~5 min (upstream) | CPU, ~1.6 s | no GPU |
+| Real defects found + fixed in gstack code | 0 | 4 | +4 |
+| Knowledge-graph nodes / communities | 1,528 / 124 | 9,095 / 742 | rebuilt |
+
+The four defects the loop caught are not stylistic nits. Windows cookie import returned every value with 32 bytes of hash garbage prepended. A PTY that ignored the polite shutdown signal leaked forever because its force-kill timer read an already-nulled reference. Tab-ownership entries leaked without bound on any tab closed by Cmd+W or a crash. A valid repo URL with a trailing slash was rejected outright. Each shipped with a test proving the bug.
+
+### What this means for you
+
+If you want to see an agent do real research instead of narrate it, run `/autoresearch` on a metric you care about, or drop `autoresearch-mini` into your own repo and point `AR_DATA` at your own text. If you use gstack on Windows, cookie import now returns correct values. To install the standalone skill, copy `autoresearch-mini/skill/` into `.claude/skills/autoresearch-mini/` and run `/autoresearch-mini`.
+
+### Itemized changes
+
+#### Added
+
+- **`/autoresearch` skill** — an autonomous propose → measure → keep loop with two
+  modes. `ml`: optimize a real validation-loss metric on a CPU-trainable numpy
+  language model (no GPU, no API key for the training itself). `repo`: fan out
+  researcher subagents over a codebase, each finding one test-verified fix, keeping
+  only what the suite confirms.
+- **`autoresearch-mini` standalone skill** — the ML loop packaged as a
+  self-contained, portable Claude Code skill. Copy `autoresearch-mini/skill/` into
+  any repo's `.claude/skills/`, or use the one-command bootstrap in its README.
+  `train.py` reads any UTF-8 corpus via `AR_DATA`, so the loop can optimize on your
+  own text. A real run drove validation loss from 2.4929 to 2.2410 (7 kept, 4
+  reverted experiments); the log is in `skill/RESEARCH_LOG.md`.
+- **Codebase knowledge graph** — `graphify-out/` regenerated over the merged tree:
+  9,095 nodes, 14,317 edges, 742 communities across 1,025 files, queryable via the
+  graphify tools.
+
+#### Fixed
+
+- **Windows cookie values no longer come back corrupted.** The Windows AES-256-GCM
+  decryption path did not strip the 32-byte SHA-256 domain-hash prefix that
+  Chromium (M124+) prepends to every cookie value, so every imported Windows cookie
+  carried 32 bytes of binary garbage in front of it. It now strips the prefix the
+  same way the macOS/Linux path does.
+- **The terminal PTY no longer leaks when it ignores the shutdown signal.** The
+  force-kill escalation read a reference that was nulled synchronously before the
+  timer fired, so SIGKILL never went out. The reference is now captured before
+  nulling; a PTY blocked in a syscall gets force-killed after the grace window.
+- **Tab-ownership no longer leaks on Cmd+W or crash.** Tabs closed outside the
+  explicit close command left their ownership entry behind forever. The close
+  handler now cleans all three state maps in sync.
+- **Repo URLs with a trailing slash are accepted.** `gstack-artifacts-url` rejected
+  `https://github.com/owner/repo/` outright, which made the artifacts repo falsely
+  refuse to re-initialize against a remote it had already stored. Trailing slashes
+  are now tolerated; malformed inputs still reject.
+
+#### For contributors
+
+- Merged 214 commits from the base branch. Conflict resolution preserved this
+  branch's worktree/harvest tooling and adopted upstream's Windows cookie support,
+  CDP-based v20 extraction, tab-ownership, and sandbox hardening. A close-tab race
+  the upstream Playwright bump exposed was fixed race-proof.
+- `graphify-out/cache/` is no longer tracked (regenerable AST build cache).
+
 ## [1.60.1.0] - 2026-07-09
 
 ## **The /autoplan dual-voice eval is back on the board, catching real regressions.**
