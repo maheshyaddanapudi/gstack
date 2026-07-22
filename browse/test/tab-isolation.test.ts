@@ -99,7 +99,60 @@ describe('Tab Isolation', () => {
       expect(() => bm.transferTab(999, 'agent-1')).toThrow('Tab 999 not found');
     });
   });
+
+  // ─── tabOwnership cleanup on non-closeTab close paths ──────────────
+  //
+  // A tab can close by paths OTHER than the closeTab() command: a headed-mode
+  // user Cmd+W, a page calling window.close(), or a target crash. All of those
+  // route through the page.on('close') handler wired in wirePageEvents — NOT
+  // through closeTab(), which is the only method that explicitly deletes the
+  // tabOwnership entry. If the close handler forgets to clean tabOwnership,
+  // pages/tabSessions shrink correctly but tabOwnership keeps a stale orphan
+  // entry forever: an unbounded leak across a long-lived headed / pair-agent
+  // session, plus getTabOwner() reporting an owner for a tab that no longer
+  // exists. The three state maps must stay in sync on EVERY close path.
+  describe('page close handler cleans tabOwnership (state-map consistency)', () => {
+    it('removes the tabOwnership entry when a tab closes outside closeTab()', () => {
+      const fakePage = new EventEmitter() as EventEmitter & {
+        url: () => string;
+        mainFrame: () => unknown;
+      };
+      fakePage.url = () => 'about:blank';
+      fakePage.mainFrame = () => ({});
+
+      const inner = bm as unknown as {
+        wirePageEvents: (p: unknown) => void;
+        pages: Map<number, unknown>;
+        tabSessions: Map<number, unknown>;
+        tabOwnership: Map<number, string>;
+        activeTabId: number;
+      };
+
+      // Register the tab the way newTab() would: wire the close handler, then
+      // record it in every state map with a scoped-agent owner.
+      inner.wirePageEvents(fakePage);
+      inner.pages.set(1, fakePage);
+      inner.tabSessions.set(1, { fake: true });
+      inner.tabOwnership.set(1, 'agent-1');
+      inner.activeTabId = 1;
+
+      expect(bm.getTabOwner(1)).toBe('agent-1');
+
+      // Simulate a Cmd+W / window.close() — fires the page 'close' event
+      // directly, bypassing the closeTab() command path.
+      fakePage.emit('close');
+
+      // pages + tabSessions must be cleaned (baseline behavior)...
+      expect(inner.pages.has(1)).toBe(false);
+      expect(inner.tabSessions.has(1)).toBe(false);
+      // ...and tabOwnership must be cleaned too — no orphaned owner.
+      expect(inner.tabOwnership.has(1)).toBe(false);
+      expect(bm.getTabOwner(1)).toBeNull();
+    });
+  });
 });
+
+import { EventEmitter } from 'node:events';
 
 // Test the instruction block generator
 import { generateInstructionBlock } from '../src/cli';

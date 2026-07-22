@@ -1938,6 +1938,12 @@ export class BrowserManager {
         if (p === page) {
           this.pages.delete(id);
           this.tabSessions.delete(id);
+          // Clean tabOwnership too — this close path (headed Cmd+W,
+          // window.close(), target crash) bypasses closeTab(), which is
+          // otherwise the only site that deletes the ownership entry. Without
+          // this, tabOwnership orphans accumulate unboundedly and getTabOwner()
+          // reports a stale owner for a tab that no longer exists.
+          this.tabOwnership.delete(id);
           console.log(`[browse] Tab closed (id=${id}, remaining=${this.pages.size})`);
           // If the closed tab was active, switch to another
           if (this.activeTabId === id) {
