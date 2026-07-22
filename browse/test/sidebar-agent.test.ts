@@ -7,9 +7,11 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { getGitRoot, writeToInbox as realWriteToInbox } from '../src/sidebar-agent';
 
 // ─── Helpers: replicate sidebar-agent logic for unit testing ──────
 
@@ -183,6 +185,39 @@ describe('writeToInbox', () => {
     expect(filePath).not.toBeNull();
     const data = JSON.parse(fs.readFileSync(filePath!, 'utf-8'));
     expect(data.sidebarSessionId).toBe('unknown');
+  });
+
+  // Regression: the sidebar-agent is a long-running daemon whose own cwd differs
+  // from the task's target worktree (carried as entry.cwd). The inbox must land
+  // in the TASK workspace's git root — where `$B inbox` reads it — not the
+  // daemon's cwd. Before the fix, getGitRoot ignored cwd entirely.
+  test('writeToInbox targets the git root of the provided cwd, not the daemon cwd', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'sidebar-workspace-'));
+    execSync('git init -q', { cwd: workspace });
+    const realWorkspace = fs.realpathSync(workspace);
+
+    // process.cwd() is the gstack repo (a different git root than `workspace`).
+    realWriteToInbox('cross-repo message', 'https://example.com', 'sess-1', workspace);
+
+    const inboxDir = path.join(realWorkspace, '.context', 'sidebar-inbox');
+    expect(fs.existsSync(inboxDir)).toBe(true);
+    const files = fs.readdirSync(inboxDir).filter(f => f.endsWith('.json') && !f.startsWith('.'));
+    expect(files.length).toBe(1);
+
+    // And it must NOT have been written into the daemon's own (process.cwd) repo.
+    expect(getGitRoot()).not.toBe(realWorkspace);
+
+    fs.rmSync(workspace, { recursive: true, force: true });
+  });
+
+  test('getGitRoot resolves the repo containing the given cwd', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'sidebar-gitroot-'));
+    execSync('git init -q', { cwd: workspace });
+    const realWorkspace = fs.realpathSync(workspace);
+
+    expect(getGitRoot(workspace)).toBe(realWorkspace);
+    expect(getGitRoot()).not.toBe(realWorkspace); // no cwd → test runner's repo
+    fs.rmSync(workspace, { recursive: true, force: true });
   });
 
   test('multiple writes create separate files', () => {

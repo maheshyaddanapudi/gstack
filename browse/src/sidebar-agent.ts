@@ -26,17 +26,20 @@ let isProcessing = false;
 
 // ─── File drop relay ──────────────────────────────────────────
 
-function getGitRoot(): string | null {
+export function getGitRoot(cwd?: string): string | null {
   try {
     const { execSync } = require('child_process');
-    return execSync('git rev-parse --show-toplevel', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    return execSync('git rev-parse --show-toplevel', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'], cwd: cwd || process.cwd() }).trim();
   } catch {
     return null;
   }
 }
 
-function writeToInbox(message: string, pageUrl?: string, sessionId?: string): void {
-  const gitRoot = getGitRoot();
+export function writeToInbox(message: string, pageUrl?: string, sessionId?: string, cwd?: string): void {
+  // Resolve the git root of the TASK's workspace (entry.cwd), not the
+  // long-running daemon's own cwd — the `$B inbox` consumer reads from the
+  // workspace git root, so writing to the daemon's root would strand messages.
+  const gitRoot = getGitRoot(cwd);
   if (!gitRoot) {
     console.error('[sidebar-agent] Cannot write to inbox — not in a git repo');
     return;
@@ -258,7 +261,7 @@ async function poll() {
 
     console.log(`[sidebar-agent] Processing: "${entry.message}"`);
     // Write to inbox so workspace agent can pick it up
-    writeToInbox(entry.message || entry.prompt, entry.pageUrl, entry.sessionId);
+    writeToInbox(entry.message || entry.prompt, entry.pageUrl, entry.sessionId, entry.cwd);
     try {
       await askClaude(entry);
     } catch (err) {
@@ -285,4 +288,7 @@ async function main() {
   setInterval(poll, POLL_MS);
 }
 
-main().catch(console.error);
+// Only start the daemon when run as a script — not when imported for testing.
+if (import.meta.main) {
+  main().catch(console.error);
+}
