@@ -1287,6 +1287,28 @@ describe('Codex generation (--host codex)', () => {
     expect(output).not.toContain('STALE');
   });
 
+  test('--dry-run does NOT write openai.yaml sidecars (generate to memory only)', () => {
+    // Ensure Codex output exists so the sidecar is present to tamper with.
+    Bun.spawnSync(['bun', 'run', 'scripts/gen-skill-docs.ts', '--host', 'codex'], {
+      cwd: ROOT, stdout: 'pipe', stderr: 'pipe',
+    });
+    const sidecar = path.join(AGENTS_DIR, 'gstack', 'agents', 'openai.yaml');
+    const original = fs.readFileSync(sidecar, 'utf-8');
+    const sentinel = 'SENTINEL_DRY_RUN_MUST_NOT_WRITE\n';
+    fs.writeFileSync(sidecar, sentinel);
+    try {
+      const result = Bun.spawnSync(
+        ['bun', 'run', 'scripts/gen-skill-docs.ts', '--host', 'codex', '--dry-run'],
+        { cwd: ROOT, stdout: 'pipe', stderr: 'pipe' },
+      );
+      expect(result.exitCode).toBe(0);
+      // Dry-run must not have touched the sidecar — it generates to memory only.
+      expect(fs.readFileSync(sidecar, 'utf-8')).toBe(sentinel);
+    } finally {
+      fs.writeFileSync(sidecar, original); // restore regardless of outcome
+    }
+  });
+
   test('--host agents alias produces same output as --host codex', () => {
     const codexResult = Bun.spawnSync(['bun', 'run', 'scripts/gen-skill-docs.ts', '--host', 'codex', '--dry-run'], {
       cwd: ROOT,

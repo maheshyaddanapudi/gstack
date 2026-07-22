@@ -2707,7 +2707,8 @@ function processTemplate(tmplPath: string, host: Host = 'claude'): { outputPath:
   if (host === 'codex') {
     const codexName = codexSkillName(skillDir === '.' ? '' : skillDir);
     outputDir = path.join(ROOT, '.agents', 'skills', codexName);
-    fs.mkdirSync(outputDir, { recursive: true });
+    // --dry-run generates to memory only — never touch the filesystem.
+    if (!DRY_RUN) fs.mkdirSync(outputDir, { recursive: true });
     outputPath = path.join(outputDir, 'SKILL.md');
   }
 
@@ -2760,7 +2761,7 @@ function processTemplate(tmplPath: string, host: Host = 'claude'): { outputPath:
     content = content.replace(/\.claude\/skills\/review/g, '.agents/skills/gstack/review');
     content = content.replace(/\.claude\/skills/g, '.agents/skills');
 
-    if (outputDir) {
+    if (outputDir && !DRY_RUN) {
       const codexName = codexSkillName(skillDir === '.' ? '' : skillDir);
       const agentsDir = path.join(outputDir, 'agents');
       fs.mkdirSync(agentsDir, { recursive: true });
