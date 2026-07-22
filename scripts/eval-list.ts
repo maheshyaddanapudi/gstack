@@ -27,7 +27,7 @@ for (let i = 0; i < args.length; i++) {
 // Read eval files
 let files: string[];
 try {
-  files = fs.readdirSync(EVAL_DIR).filter(f => f.endsWith('.json'));
+  files = fs.readdirSync(EVAL_DIR).filter(f => f.endsWith('.json') && !f.startsWith('_partial'));
 } catch {
   console.log('No eval runs yet. Run: EVALS=1 bun run test:evals');
   process.exit(0);

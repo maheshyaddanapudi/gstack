@@ -21,6 +21,8 @@ const LEGACY_EVAL_DIR = path.join(os.homedir(), '.gstack-dev', 'evals');
  * Falls back to legacy ~/.gstack-dev/evals/ if slug detection fails.
  */
 export function getProjectEvalDir(): string {
+  // Explicit override (used by operators and tests to point at a specific dir).
+  if (process.env.GSTACK_EVAL_DIR) return process.env.GSTACK_EVAL_DIR;
   try {
     // Try repo-local gstack-slug first, then global install
     const localSlug = spawnSync('bash', ['-c', '.claude/skills/gstack/bin/gstack-slug 2>/dev/null || ~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null'], {
